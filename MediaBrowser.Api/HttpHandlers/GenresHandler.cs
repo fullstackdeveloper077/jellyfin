@@ -1,4 +1,5 @@
-﻿using MediaBrowser.Common.Net;
+﻿using System;
+using MediaBrowser.Common.Net;
 using MediaBrowser.Common.Net.Handlers;
 using MediaBrowser.Model.Entities;
 
@@ -16,8 +17,9 @@ namespace MediaBrowser.Api.HttpHandlers
             get
             {
                 Folder parent = ApiService.GetItemById(QueryString["id"]) as Folder;
+                Guid userId = Guid.Parse(QueryString["userid"]);
 
-                return ApiService.GetAllGenres(parent);
+                return ApiService.GetAllGenres(parent, userId);
             }
         }
     }
