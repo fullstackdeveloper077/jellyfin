@@ -2,12 +2,15 @@
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Threading.Tasks;
-using MediaBrowser.Controller.Events;
 using MediaBrowser.Controller.IO;
+using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Entities;
 
 namespace MediaBrowser.Controller.Providers
 {
+    /// <summary>
+    /// Provides local trailers by checking the trailers subfolder
+    /// </summary>
     [Export(typeof(BaseMetadataProvider))]
     public class LocalTrailerProvider : BaseMetadataProvider
     {
