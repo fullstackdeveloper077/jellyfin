@@ -10,7 +10,6 @@ namespace MediaBrowser.Model.DTO
         Aac,
         Flac,
         Mp3,
-        Wav,
         Wma
     }
 }
