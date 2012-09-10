@@ -11,7 +11,7 @@ namespace MediaBrowser.Api.HttpHandlers
     /// Provides a handler to set user favorite status for an item
     /// </summary>
     [Export(typeof(BaseHandler))]
-    public class FavoriteStatus : BaseSerializationHandler<DTOUserItemData>
+    public class FavoriteStatusHandler : BaseSerializationHandler<DTOUserItemData>
     {
         public override bool HandlesRequest(HttpListenerRequest request)
         {
@@ -27,13 +27,7 @@ namespace MediaBrowser.Api.HttpHandlers
             User user = ApiService.GetUserById(QueryString["userid"], true);
 
             // Get the user data for this item
-            UserItemData data = item.GetUserData(user);
-
-            if (data == null)
-            {
-                data = new UserItemData();
-                item.AddUserData(user, data);
-            }
+            UserItemData data = item.GetUserData(user, true);
 
             // Set favorite status
             data.IsFavorite = QueryString["isfavorite"] == "1";
