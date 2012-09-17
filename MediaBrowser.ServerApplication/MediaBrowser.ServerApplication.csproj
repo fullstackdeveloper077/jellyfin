@@ -122,14 +122,15 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\Images\icon16.ico" />
-  </ItemGroup>
-  <ItemGroup>
     <Resource Include="Resources\Images\icon.ico" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\Images\loadingIcon1-16.ico" />
-    <Resource Include="Resources\Images\loadingIcon2-16.ico" />
+    <Resource Include="Resources\Images\loadingIcon1.ico" />
+    <Resource Include="Resources\Images\loadingIcon2.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Images\loadingIcon3.ico" />
+    <Resource Include="Resources\Images\loadingIcon4.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
