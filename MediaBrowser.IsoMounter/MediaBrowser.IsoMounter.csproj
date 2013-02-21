@@ -62,8 +62,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IsoManager.cs" />
-    <Compile Include="IsoMount.cs" />
+    <Compile Include="PismoIsoManager.cs" />
+    <Compile Include="PismoMount.cs" />
     <Compile Include="MyPfmFileMountUi.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
