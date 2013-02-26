@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{FACAF749-3E28-46DD-B613-654FCD434959}</ProjectGuid>
+    <ProjectGuid>{21EC6FB8-F444-4B60-8BA5-9CA443901A0D}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>MediaBrowser.Uninstaller</RootNamespace>
@@ -92,12 +92,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-  </ItemGroup>
-  <ItemGroup />
-  <ItemGroup>
-    <Resource Include="..\MediaBrowser.Installer\Code\Images\mb3logo800.png">
-      <Link>Code\Images\mb3logo800.png</Link>
-    </Resource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
