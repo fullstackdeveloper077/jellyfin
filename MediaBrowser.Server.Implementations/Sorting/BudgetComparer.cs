@@ -4,7 +4,7 @@ using MediaBrowser.Model.Querying;
 
 namespace MediaBrowser.Server.Implementations.Sorting
 {
-    public class BudgetDateComparer : IBaseItemComparer
+    public class BudgetComparer : IBaseItemComparer
     {
         /// <summary>
         /// Compares the specified x.
