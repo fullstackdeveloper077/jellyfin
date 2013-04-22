@@ -66,7 +66,7 @@ namespace MediaBrowser.Server.Implementations.ScheduledTasks
         /// <value>The description.</value>
         public string Description
         {
-            get { return "Updates metadata for actors, artists and directors in your media library."; }
+            get { return "Updates metadata for actors and directors in your media library."; }
         }
 
         /// <summary>
