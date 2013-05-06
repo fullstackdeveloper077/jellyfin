@@ -23,18 +23,17 @@ namespace MediaBrowser.Controller.Providers.Movies
         /// <summary>
         /// The API key
         /// </summary>
-        private const string ApiKey = "x9wjnvv39ntjmt9zs95nm7bg";
+        internal const string ApiKey = "x9wjnvv39ntjmt9zs95nm7bg";
 
-        private const string BasicUrl = @"http://api.rottentomatoes.com/api/public/v1.0/";
-        private const string Movie = @"movies/{1}.json?apikey={0}";
+        internal const string BasicUrl = @"http://api.rottentomatoes.com/api/public/v1.0/";
         private const string MovieImdb = @"movie_alias.json?id={1}&type=imdb&apikey={0}";
-        private const string MovieSearch = @"movies.json?q={1}&apikey={0}&page_limit=20&page={2}";
-        private const string MoviesReviews = @"movies/{1}/reviews.json?review_type=top_critic&page_limit=10&page=1&country=us&apikey={0}";
+
+        internal static RottenTomatoesMovieProvider Current { get; private set; }
 
         /// <summary>
         /// The _rotten tomatoes resource pool
         /// </summary>
-        private readonly SemaphoreSlim _rottenTomatoesResourcePool = new SemaphoreSlim(1, 1);
+        internal readonly SemaphoreSlim RottenTomatoesResourcePool = new SemaphoreSlim(1, 1);
 
         /// <summary>
         /// Gets the json serializer.
@@ -60,6 +59,7 @@ namespace MediaBrowser.Controller.Providers.Movies
         {
             JsonSerializer = jsonSerializer;
             HttpClient = httpClient;
+            Current = this;
         }
 
         /// <summary>
@@ -136,7 +136,7 @@ namespace MediaBrowser.Controller.Providers.Movies
             get
             {
                 // Run after moviedb and xml providers
-                return MetadataProviderPriority.Last;
+                return MetadataProviderPriority.Third;
             }
         }
 
@@ -183,73 +183,29 @@ namespace MediaBrowser.Controller.Providers.Movies
                 return true;
             }
 
-            RTMovieSearchResult hit = null;
-
             // Have IMDB Id
             using (var stream = await HttpClient.Get(new HttpRequestOptions
             {
                 Url = GetMovieImdbUrl(imdbId),
-                ResourcePool = _rottenTomatoesResourcePool,
+                ResourcePool = RottenTomatoesResourcePool,
                 CancellationToken = cancellationToken,
                 EnableResponseCache = true
 
             }).ConfigureAwait(false))
             {
-                var result = JsonSerializer.DeserializeFromStream<RTMovieSearchResult>(stream);
+                var hit = JsonSerializer.DeserializeFromStream<RTMovieSearchResult>(stream);
 
-                if (!string.IsNullOrEmpty(result.id))
+                if (!string.IsNullOrEmpty(hit.id))
                 {
                     // Got a result
-                    hit = result;
-                }
-            }
-
-            // If we found any results, that's great!
-            if (hit != null)
-            {
-                item.CriticRatingSummary = hit.critics_consensus;
-                item.CriticRating = float.Parse(hit.ratings.critics_score);
-
-                using (var stream = await HttpClient.Get(new HttpRequestOptions
-                {
-                    Url = GetMovieReviewsUrl(hit.id),
-                    ResourcePool = _rottenTomatoesResourcePool,
-                    CancellationToken = cancellationToken,
-                    EnableResponseCache = true
-
-                }).ConfigureAwait(false))
-                {
-
-                    var result = JsonSerializer.DeserializeFromStream<RTReviewList>(stream);
-
-                    item.CriticReviews = result.reviews.Select(rtReview => new ItemReview
-                    {
-                        ReviewerName = rtReview.critic,
-                        Publisher = rtReview.publication,
-                        Date = DateTime.Parse(rtReview.date).ToUniversalTime(),
-                        Caption = rtReview.quote,
-                        Url = rtReview.links.review,
-                        Likes = string.Equals(rtReview.freshness, "fresh", StringComparison.OrdinalIgnoreCase)
-
-                    }).ToList();
-
-                    if (data == null)
-                    {
-                        data = new BaseProviderInfo();
-                    }
+                    item.CriticRatingSummary = hit.critics_consensus;
+                    item.CriticRating = float.Parse(hit.ratings.critics_score);
 
                     data.Data = GetComparisonData(hit.alternate_ids.imdb);
 
                     item.SetProviderId(MetadataProviders.Imdb, hit.alternate_ids.imdb);
                     item.SetProviderId(MetadataProviders.RottenTomatoes, hit.id);
                 }
-            }
-            else
-            {
-                // Nothing found on RT
-                Logger.Info("Nothing found on RottenTomatoes for Movie \"{0}\"", item.Name);
-
-                // TODO: When alternative names are implemented search for those instead
             }
 
             data.Data = GetComparisonData(imdbId);
@@ -265,11 +221,6 @@ namespace MediaBrowser.Controller.Providers.Movies
         private string GetMovieImdbUrl(string imdbId)
         {
             return BasicUrl + string.Format(MovieImdb, ApiKey, imdbId.TrimStart('t'));
-        }
-
-        private string GetMovieReviewsUrl(string rtId)
-        {
-            return BasicUrl + string.Format(MoviesReviews, ApiKey, rtId);
         }
 
         // Data contract classes for use with the Rotten Tomatoes API
@@ -311,28 +262,6 @@ namespace MediaBrowser.Controller.Providers.Movies
         protected class RTAlternateIds
         {
             public string imdb { get; set; }
-        }
-
-        protected class RTReviewList
-        {
-            public int total { get; set; }
-            public List<RTReview> reviews { get; set; }
-        }
-
-        protected class RTReview
-        {
-            public string critic { get; set; }
-            public string date { get; set; }
-            public string freshness { get; set; }
-            public string publication { get; set; }
-            public string quote { get; set; }
-            public RTReviewLink links { get; set; }
-            public string original_score { get; set; }
-        }
-
-        protected class RTReviewLink
-        {
-            public string review { get; set; }
         }
     }
 }
