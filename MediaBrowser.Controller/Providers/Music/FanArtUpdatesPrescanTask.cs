@@ -68,7 +68,7 @@ namespace MediaBrowser.Controller.Providers.Music
                 return;
             }
 
-            // Find out the last time we queried tvdb for updates
+            // Find out the last time we queried for updates
             var lastUpdateTime = timestampFileInfo.Exists ? File.ReadAllText(timestampFile, Encoding.UTF8) : string.Empty;
 
             var existingDirectories = Directory.EnumerateDirectories(path).Select(Path.GetFileName).ToList();
@@ -93,11 +93,11 @@ namespace MediaBrowser.Controller.Providers.Music
         /// <summary>
         /// Gets the artist ids to update.
         /// </summary>
-        /// <param name="existingSeriesIds">The existing series ids.</param>
+        /// <param name="existingArtistIds">The existing series ids.</param>
         /// <param name="lastUpdateTime">The last update time.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>Task{IEnumerable{System.String}}.</returns>
-        private async Task<IEnumerable<string>> GetArtistIdsToUpdate(IEnumerable<string> existingSeriesIds, string lastUpdateTime, CancellationToken cancellationToken)
+        private async Task<IEnumerable<string>> GetArtistIdsToUpdate(IEnumerable<string> existingArtistIds, string lastUpdateTime, CancellationToken cancellationToken)
         {
             // First get last time
             using (var stream = await _httpClient.Get(new HttpRequestOptions
@@ -121,7 +121,7 @@ namespace MediaBrowser.Controller.Providers.Music
 
                     var updates = _jsonSerializer.DeserializeFromString<List<FanArtUpdate>>(json);
 
-                    return updates.Select(i => i.id).Where(i => existingSeriesIds.Contains(i, StringComparer.OrdinalIgnoreCase));
+                    return updates.Select(i => i.id).Where(i => existingArtistIds.Contains(i, StringComparer.OrdinalIgnoreCase));
                 }
             }
         }
