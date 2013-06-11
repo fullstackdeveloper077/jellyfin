@@ -1,6 +1,5 @@
 ﻿using MediaBrowser.Controller.Dto;
 using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Entities.Audio;
 using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
@@ -170,13 +169,7 @@ namespace MediaBrowser.Api.UserLibrary
 
                 SeriesCount = items.OfType<Series>().Count(),
 
-                GameCount = items.OfType<BaseGame>().Count(),
-
-                SongCount = items.OfType<Audio>().Count(),
-
-                AlbumCount = items.OfType<MusicAlbum>().Count(),
-
-                MusicVideoCount = items.OfType<MusicVideo>().Count()
+                GameCount = items.OfType<BaseGame>().Count()
             };
 
             return ToOptimizedResult(counts);
