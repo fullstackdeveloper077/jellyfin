@@ -15,7 +15,8 @@ namespace MediaBrowser.Providers
     /// </summary>
     public class FolderProviderFromXml : BaseMetadataProvider
     {
-        public FolderProviderFromXml(ILogManager logManager, IServerConfigurationManager configurationManager) : base(logManager, configurationManager)
+        public FolderProviderFromXml(ILogManager logManager, IServerConfigurationManager configurationManager)
+            : base(logManager, configurationManager)
         {
         }
 

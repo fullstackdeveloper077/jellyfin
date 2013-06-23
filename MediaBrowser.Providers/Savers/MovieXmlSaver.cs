@@ -1,4 +1,4 @@
-﻿using System.Text;
+﻿using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Library;
@@ -6,6 +6,7 @@ using MediaBrowser.Model.Entities;
 using MediaBrowser.Providers.Movies;
 using System;
 using System.IO;
+using System.Text;
 using System.Threading;
 
 namespace MediaBrowser.Providers.Savers
@@ -15,6 +16,13 @@ namespace MediaBrowser.Providers.Savers
     /// </summary>
     public class MovieXmlSaver : IMetadataSaver
     {
+        private readonly IServerConfigurationManager _config;
+
+        public MovieXmlSaver(IServerConfigurationManager config)
+        {
+            _config = config;
+        }
+
         /// <summary>
         /// Supportses the specified item.
         /// </summary>
@@ -22,7 +30,7 @@ namespace MediaBrowser.Providers.Savers
         /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
         public bool Supports(BaseItem item)
         {
-            if (item.LocationType != LocationType.FileSystem)
+            if (!_config.Configuration.SaveLocalMeta || item.LocationType != LocationType.FileSystem)
             {
                 return false;
             }
@@ -50,13 +58,13 @@ namespace MediaBrowser.Providers.Savers
 
             builder.Append("<Title>");
 
-            XmlHelpers.AddCommonNodes(item, builder);
+            XmlSaverHelpers.AddCommonNodes(item, builder);
 
             builder.Append("</Title>");
 
             var xmlFilePath = GetSavePath(item);
 
-            XmlHelpers.Save(builder, xmlFilePath);
+            XmlSaverHelpers.Save(builder, xmlFilePath);
 
             // Set last refreshed so that the provider doesn't trigger after the file save
             MovieProviderFromXml.Current.SetLastRefreshed(item, DateTime.UtcNow);
