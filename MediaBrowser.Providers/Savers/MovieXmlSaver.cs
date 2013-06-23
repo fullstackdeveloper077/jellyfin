@@ -1,10 +1,12 @@
-﻿using MediaBrowser.Controller.Entities;
+﻿using System.Text;
+using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Entities;
+using MediaBrowser.Providers.Movies;
+using System;
 using System.IO;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace MediaBrowser.Providers.Savers
 {
@@ -42,15 +44,23 @@ namespace MediaBrowser.Providers.Savers
         /// <param name="item">The item.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>Task.</returns>
-        public Task Save(BaseItem item, CancellationToken cancellationToken)
+        public void Save(BaseItem item, CancellationToken cancellationToken)
         {
-            var video = (Video)item;
+            var builder = new StringBuilder();
+
+            builder.Append("<Title>");
+
+            XmlHelpers.AddCommonNodes(item, builder);
+
+            builder.Append("</Title>");
 
             var xmlFilePath = GetSavePath(item);
 
-            return Task.Run(() => { });
-        }
+            XmlHelpers.Save(builder, xmlFilePath);
 
+            // Set last refreshed so that the provider doesn't trigger after the file save
+            MovieProviderFromXml.Current.SetLastRefreshed(item, DateTime.UtcNow);
+        }
 
         public string GetSavePath(BaseItem item)
         {
