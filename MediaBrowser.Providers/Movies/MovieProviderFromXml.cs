@@ -37,7 +37,7 @@ namespace MediaBrowser.Providers.Movies
                 return !trailer.IsLocalTrailer;
             }
 
-            return item is Movie || item is BoxSet || item is MusicVideo;
+            return item is Movie || item is MusicVideo;
         }
 
         /// <summary>
@@ -101,28 +101,19 @@ namespace MediaBrowser.Providers.Movies
                     }
                     else
                     {
-                        var boxset = item as BoxSet;
+                        var musicVideo = item as MusicVideo;
 
-                        if (boxset != null)
+                        if (musicVideo != null)
                         {
-                            new BaseItemXmlParser<BoxSet>(Logger).Fetch(boxset, path, cancellationToken);
+                            new BaseItemXmlParser<MusicVideo>(Logger).Fetch(musicVideo, path, cancellationToken);
                         }
                         else
                         {
-                            var musicVideo = item as MusicVideo;
+                            var trailer = item as Trailer;
 
-                            if (musicVideo != null)
+                            if (trailer != null)
                             {
-                                new BaseItemXmlParser<MusicVideo>(Logger).Fetch(musicVideo, path, cancellationToken);
-                            }
-                            else
-                            {
-                                var trailer = item as Trailer;
-
-                                if (trailer != null)
-                                {
-                                    new BaseItemXmlParser<Trailer>(Logger).Fetch(trailer, path, cancellationToken);
-                                }
+                                new BaseItemXmlParser<Trailer>(Logger).Fetch(trailer, path, cancellationToken);
                             }
                         }
                     }

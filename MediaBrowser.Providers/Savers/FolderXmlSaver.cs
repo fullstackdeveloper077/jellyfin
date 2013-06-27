@@ -48,7 +48,7 @@ namespace MediaBrowser.Providers.Savers
                 return false;
             }
 
-            return !(item is Series) && !(item is BoxSet) && !(item is MusicArtist) && !(item is MusicAlbum);
+            return !(item is Series) && !(item is BoxSet) && !(item is MusicArtist) && !(item is MusicAlbum) && !(item is Season);
         }
 
         /// <summary>
