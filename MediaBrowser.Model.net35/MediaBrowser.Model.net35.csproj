@@ -85,6 +85,9 @@
     <Compile Include="..\MediaBrowser.Model\Dto\ItemByNameCounts.cs">
       <Link>Dto\ItemByNameCounts.cs</Link>
     </Compile>
+    <Compile Include="..\MediaBrowser.Model\Dto\ItemCounts.cs">
+      <Link>Dto\ItemCounts.cs</Link>
+    </Compile>
     <Compile Include="..\MediaBrowser.Model\Dto\StreamOptions.cs">
       <Link>Dto\StreamOptions.cs</Link>
     </Compile>
@@ -229,6 +232,9 @@
     <Compile Include="..\MediaBrowser.Model\Notifications\NotificationResult.cs">
       <Link>Notifications\NotificationResult.cs</Link>
     </Compile>
+    <Compile Include="..\MediaBrowser.Model\Notifications\NotificationsSummary.cs">
+      <Link>Notifications\NotificationsSummary.cs</Link>
+    </Compile>
     <Compile Include="..\MediaBrowser.Model\Plugins\BasePluginConfiguration.cs">
       <Link>Plugins\BasePluginConfiguration.cs</Link>
     </Compile>
@@ -258,6 +264,9 @@
     </Compile>
     <Compile Include="..\MediaBrowser.Model\Querying\ItemsResult.cs">
       <Link>Querying\ItemsResult.cs</Link>
+    </Compile>
+    <Compile Include="..\MediaBrowser.Model\Querying\NextUpQuery.cs">
+      <Link>Querying\NextUpQuery.cs</Link>
     </Compile>
     <Compile Include="..\MediaBrowser.Model\Querying\PersonsQuery.cs">
       <Link>Querying\PersonsQuery.cs</Link>
