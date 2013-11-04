@@ -59,7 +59,7 @@ namespace MediaBrowser.Providers.TV
             if (!string.IsNullOrEmpty(seriesId) && season.IndexNumber.HasValue)
             {
                 // Process images
-                var seriesDataPath = RemoteSeriesProvider.GetSeriesDataPath(_config.ApplicationPaths, seriesId);
+                var seriesDataPath = TvdbSeriesProvider.GetSeriesDataPath(_config.ApplicationPaths, seriesId);
 
                 var path = Path.Combine(seriesDataPath, "banners.xml");
 
@@ -279,9 +279,13 @@ namespace MediaBrowser.Providers.TV
                     ProviderName = Name,
                     Language = language,
                     Width = width,
-                    Height = height,
-                    ThumbnailUrl = thumbnailUrl
+                    Height = height
                 };
+
+                if (!string.IsNullOrEmpty(thumbnailUrl))
+                {
+                    imageInfo.ThumbnailUrl = TVUtils.BannerUrl + thumbnailUrl;
+                }
 
                 if (string.Equals(bannerType, "season", StringComparison.OrdinalIgnoreCase))
                 {
@@ -307,7 +311,7 @@ namespace MediaBrowser.Providers.TV
 
         public int Priority
         {
-            get { return 0; }
+            get { return 1; }
         }
     }
 }
