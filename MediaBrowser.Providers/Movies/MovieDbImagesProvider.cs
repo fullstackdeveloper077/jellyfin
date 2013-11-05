@@ -166,14 +166,9 @@ namespace MediaBrowser.Providers.Movies
         /// <returns>Task{System.Boolean}.</returns>
         public override async Task<bool> FetchAsync(BaseItem item, bool force, CancellationToken cancellationToken)
         {
-            var id = item.GetProviderId(MetadataProviders.Tmdb);
+            var images = await _providerManager.GetAvailableRemoteImages(item, cancellationToken, ManualMovieDbImageProvider.ProviderName).ConfigureAwait(false);
 
-            if (!string.IsNullOrEmpty(id))
-            {
-                var images = await _providerManager.GetAvailableRemoteImages(item, cancellationToken, ManualMovieDbImageProvider.ProviderName).ConfigureAwait(false);
-
-                await ProcessImages(item, images.ToList(), cancellationToken).ConfigureAwait(false);
-            }
+            await ProcessImages(item, images.ToList(), cancellationToken).ConfigureAwait(false);
 
             SetLastRefreshed(item, DateTime.UtcNow);
             return true;
