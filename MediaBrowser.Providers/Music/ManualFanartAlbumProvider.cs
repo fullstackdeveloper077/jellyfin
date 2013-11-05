@@ -239,6 +239,12 @@ namespace MediaBrowser.Providers.Music
             }
         }
 
+        /// <summary>
+        /// Adds the images.
+        /// </summary>
+        /// <param name="list">The list.</param>
+        /// <param name="reader">The reader.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         private void AddImages(List<RemoteImageInfo> list, XmlReader reader, CancellationToken cancellationToken)
         {
             reader.MoveToContent();
@@ -271,6 +277,14 @@ namespace MediaBrowser.Providers.Music
             }
         }
 
+        /// <summary>
+        /// Adds the image.
+        /// </summary>
+        /// <param name="list">The list.</param>
+        /// <param name="reader">The reader.</param>
+        /// <param name="type">The type.</param>
+        /// <param name="width">The width.</param>
+        /// <param name="height">The height.</param>
         private void AddImage(List<RemoteImageInfo> list, XmlReader reader, ImageType type, int width, int height)
         {
             var url = reader.GetAttribute("url");
