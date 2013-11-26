@@ -52,11 +52,6 @@ namespace MediaBrowser.Model.LiveTv
         public DateTime EndDate { get; set; }
 
         /// <summary>
-        /// IsRecurring recording?
-        /// </summary>
-        public bool IsRecurring { get; set; }
-
-        /// <summary>
         /// Gets or sets the status.
         /// </summary>
         /// <value>The status.</value>
