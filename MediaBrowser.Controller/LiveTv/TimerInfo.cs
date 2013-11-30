@@ -11,6 +11,12 @@ namespace MediaBrowser.Controller.LiveTv
         public string Id { get; set; }
 
         /// <summary>
+        /// Gets or sets the recurring timer identifier.
+        /// </summary>
+        /// <value>The recurring timer identifier.</value>
+        public string RecurringTimerId { get; set; }
+        
+        /// <summary>
         /// ChannelId of the recording.
         /// </summary>
         public string ChannelId { get; set; }
@@ -51,12 +57,6 @@ namespace MediaBrowser.Controller.LiveTv
         /// </summary>
         /// <value>The status.</value>
         public RecordingStatus Status { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether this instance is recurring.
-        /// </summary>
-        /// <value><c>true</c> if this instance is recurring; otherwise, <c>false</c>.</value>
-        public bool IsRecurring { get; set; }
 
         /// <summary>
         /// Gets or sets the pre padding seconds.
