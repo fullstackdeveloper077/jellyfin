@@ -1,4 +1,5 @@
 ﻿using MediaBrowser.Common.IO;
+using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
@@ -21,18 +22,20 @@ namespace MediaBrowser.Server.Implementations.LiveTv
         private readonly ILiveTvManager _liveTvManager;
         private readonly IProviderManager _providerManager;
         private readonly IFileSystem _fileSystem;
+        private readonly IHttpClient _httpClient;
 
-        public ChannelImageProvider(ILogManager logManager, IServerConfigurationManager configurationManager, ILiveTvManager liveTvManager, IProviderManager providerManager, IFileSystem fileSystem)
+        public ChannelImageProvider(ILogManager logManager, IServerConfigurationManager configurationManager, ILiveTvManager liveTvManager, IProviderManager providerManager, IFileSystem fileSystem, IHttpClient httpClient)
             : base(logManager, configurationManager)
         {
             _liveTvManager = liveTvManager;
             _providerManager = providerManager;
             _fileSystem = fileSystem;
+            _httpClient = httpClient;
         }
 
         public override bool Supports(BaseItem item)
         {
-            return item is Channel;
+            return item is LiveTvChannel;
         }
 
         protected override bool NeedsRefreshInternal(BaseItem item, BaseProviderInfo providerInfo)
@@ -48,21 +51,16 @@ namespace MediaBrowser.Server.Implementations.LiveTv
                 return true;
             }
 
-            var channel = (Channel)item;
-
-            if (channel.HasProviderImage ?? true)
+            try
             {
-                try
+                await DownloadImage((LiveTvChannel)item, cancellationToken).ConfigureAwait(false);
+            }
+            catch (HttpException ex)
+            {
+                // Don't fail the provider on a 404
+                if (!ex.StatusCode.HasValue || ex.StatusCode.Value != HttpStatusCode.NotFound)
                 {
-                    await DownloadImage(item, cancellationToken).ConfigureAwait(false);
-                }
-                catch (HttpException ex)
-                {
-                    // Don't fail the provider on a 404
-                    if (!ex.StatusCode.HasValue || ex.StatusCode.Value != HttpStatusCode.NotFound)
-                    {
-                        throw;
-                    }
+                    throw;
                 }
             }
 
@@ -70,20 +68,55 @@ namespace MediaBrowser.Server.Implementations.LiveTv
             return true;
         }
 
-        private async Task DownloadImage(BaseItem item, CancellationToken cancellationToken)
+        private async Task DownloadImage(LiveTvChannel item, CancellationToken cancellationToken)
         {
-            var channel = (Channel)item;
+            var channelInfo = item.ChannelInfo;
 
-            var service = _liveTvManager.Services.FirstOrDefault(i => string.Equals(i.Name, channel.ServiceName, StringComparison.OrdinalIgnoreCase));
+            Stream imageStream = null;
+            string contentType = null;
 
-            if (service != null)
+            if (!string.IsNullOrEmpty(channelInfo.ImagePath))
             {
-                var response = await service.GetChannelImageAsync(channel.ChannelId, cancellationToken).ConfigureAwait(false);
+                contentType = "image/" + Path.GetExtension(channelInfo.ImagePath).ToLower();
+                imageStream = _fileSystem.GetFileStream(channelInfo.ImagePath, FileMode.Open, FileAccess.Read, FileShare.Read, true);
+            }
+            else if (!string.IsNullOrEmpty(channelInfo.ImageUrl))
+            {
+                var options = new HttpRequestOptions
+                {
+                    CancellationToken = cancellationToken,
+                    Url = channelInfo.ImageUrl
+                };
 
+                var response = await _httpClient.GetResponse(options).ConfigureAwait(false);
+
+                if (!response.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new InvalidOperationException("Provider did not return an image content type.");
+                }
+
+                imageStream = response.Content;
+                contentType = response.ContentType;
+            }
+            else
+            {
+                var service = _liveTvManager.Services.FirstOrDefault(i => string.Equals(i.Name, item.ServiceName, StringComparison.OrdinalIgnoreCase));
+
+                if (service != null)
+                {
+                    var response = await service.GetChannelImageAsync(channelInfo.Id, cancellationToken).ConfigureAwait(false);
+
+                    imageStream = response.Stream;
+                    contentType = response.MimeType;
+                }
+            }
+
+            if (imageStream != null)
+            {
                 // Dummy up the original url
-                var url = channel.ServiceName + channel.ChannelId;
+                var url = item.ServiceName + channelInfo.Id;
 
-                await _providerManager.SaveImage(channel, response.Stream, response.MimeType, ImageType.Primary, null, url, cancellationToken).ConfigureAwait(false);
+                await _providerManager.SaveImage(item, imageStream, contentType, ImageType.Primary, null, url, cancellationToken).ConfigureAwait(false);
             }
         }
 
