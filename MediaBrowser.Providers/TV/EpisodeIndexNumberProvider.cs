@@ -50,7 +50,12 @@ namespace MediaBrowser.Providers.TV
         /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
         public override bool Supports(BaseItem item)
         {
-            return item is Episode && item.LocationType != LocationType.Virtual && item.LocationType != LocationType.Remote;
+            if (item is Episode)
+            {
+                var locationType = item.LocationType;
+                return locationType != LocationType.Virtual && locationType != LocationType.Remote;
+            }
+            return false;
         }
 
         /// <summary>
