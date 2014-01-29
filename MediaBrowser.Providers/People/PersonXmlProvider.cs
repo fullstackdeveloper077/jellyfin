@@ -55,10 +55,5 @@ namespace MediaBrowser.Providers.People
         {
             return Path.Combine(path, "person.xml");
         }
-
-        public bool HasLocalMetadata(IHasMetadata item)
-        {
-            return File.Exists(GetXmlPath(item.Path));
-        }
     }
 }
