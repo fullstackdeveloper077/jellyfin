@@ -46,7 +46,7 @@ namespace MediaBrowser.Providers.Movies
             }
 
             // Don't support local trailers
-            return item is Movie || item is BoxSet || item is MusicVideo;
+            return item is Movie || item is MusicVideo;
         }
 
         public IEnumerable<ImageType> GetSupportedImages(IHasImages item)
