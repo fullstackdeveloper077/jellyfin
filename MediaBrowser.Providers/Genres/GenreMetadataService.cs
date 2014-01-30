@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace MediaBrowser.Providers.Genres
 {
-    public class GenreMetadataService : MetadataService<Genre>
+    public class GenreMetadataService : ConcreteMetadataService<Genre>
     {
         private readonly ILibraryManager _libraryManager;
 
