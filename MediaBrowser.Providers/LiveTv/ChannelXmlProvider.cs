@@ -20,7 +20,7 @@ namespace MediaBrowser.Providers.LiveTv
 
         public async Task<MetadataResult<LiveTvChannel>> GetMetadata(string path, CancellationToken cancellationToken)
         {
-            path = GetXmlPath(path);
+            path = GetXmlFile(path).FullName;
 
             var result = new MetadataResult<LiveTvChannel>();
 
@@ -48,12 +48,12 @@ namespace MediaBrowser.Providers.LiveTv
 
         public string Name
         {
-            get { return "Media Browser Xml"; }
+            get { return "Media Browser xml"; }
         }
 
-        protected override string GetXmlPath(string path)
+        protected override FileInfo GetXmlFile(string path)
         {
-            return Path.Combine(path, "channel.xml");
+            return new FileInfo(Path.Combine(path, "channel.xml"));
         }
     }
 }
