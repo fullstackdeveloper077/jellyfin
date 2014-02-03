@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace MediaBrowser.Providers.BoxSets
 {
     /// <summary>
-    /// Class SeriesProviderFromXml
+    /// Class BoxSetXmlProvider.
     /// </summary>
     public class BoxSetXmlProvider : BaseXmlProvider, ILocalMetadataProvider<BoxSet>
     {
