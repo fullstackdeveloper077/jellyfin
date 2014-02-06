@@ -5,11 +5,10 @@ using MediaBrowser.Model.Logging;
 using MediaBrowser.Providers.Movies;
 using System.IO;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace MediaBrowser.Providers.AdultVideos
 {
-    class AdultVideoXmlProvider : BaseXmlProvider, ILocalMetadataProvider<AdultVideo>
+    class AdultVideoXmlProvider : BaseXmlProvider<AdultVideo>
     {
         private readonly ILogger _logger;
 
@@ -19,41 +18,14 @@ namespace MediaBrowser.Providers.AdultVideos
             _logger = logger;
         }
 
-        public async Task<MetadataResult<AdultVideo>> GetMetadata(string path, CancellationToken cancellationToken)
+        protected override void Fetch(AdultVideo item, string path, CancellationToken cancellationToken)
         {
-            path = GetXmlFile(path).FullName;
-
-            var result = new MetadataResult<AdultVideo>();
-
-            await XmlParsingResourcePool.WaitAsync(cancellationToken).ConfigureAwait(false);
-
-            try
-            {
-                result.Item = new AdultVideo();
-
-                new MovieXmlParser(_logger).Fetch(result.Item, path, cancellationToken);
-                result.HasMetadata = true;
-            }
-            catch (FileNotFoundException)
-            {
-                result.HasMetadata = false;
-            }
-            finally
-            {
-                XmlParsingResourcePool.Release();
-            }
-
-            return result;
+            new MovieXmlParser(_logger).Fetch(item, path, cancellationToken);
         }
 
-        public string Name
+        protected override FileInfo GetXmlFile(ItemInfo info)
         {
-            get { return "Media Browser Xml"; }
-        }
-
-        protected override FileInfo GetXmlFile(string path)
-        {
-            return MovieXmlProvider.GetXmlFileInfo(path, FileSystem);
+            return MovieXmlProvider.GetXmlFileInfo(info, FileSystem);
         }
     }
 }
