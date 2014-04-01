@@ -1,6 +1,7 @@
 ﻿using MediaBrowser.Controller.Dlna;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Audio;
+using MediaBrowser.Model.Dlna;
 using MediaBrowser.Model.Entities;
 using System;
 using System.Collections.Generic;
@@ -184,7 +185,6 @@ namespace MediaBrowser.Dlna.PlayTo
                         }
                         break;
                     }
-                    case ProfileConditionValue.Filesize:
                     case ProfileConditionValue.AudioProfile:
                     case ProfileConditionValue.Has64BitOffsets:
                     case ProfileConditionValue.VideoBitDepth:
@@ -444,8 +444,6 @@ namespace MediaBrowser.Dlna.PlayTo
                     return audioStream == null ? null : audioStream.BitRate;
                 case ProfileConditionValue.AudioChannels:
                     return audioStream == null ? null : audioStream.Channels;
-                case ProfileConditionValue.Filesize:
-                    return new FileInfo(mediaPath).Length;
                 case ProfileConditionValue.VideoBitrate:
                     return videoStream == null ? null : videoStream.BitRate;
                 case ProfileConditionValue.VideoFramerate:
