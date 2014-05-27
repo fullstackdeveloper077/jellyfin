@@ -39,10 +39,10 @@ namespace MediaBrowser.Model.Channels
         public bool SupportsSortOrderToggle { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether the channel content is just a single media list.
+        /// Gets or sets a value indicating whether this instance can filter.
         /// </summary>
-        /// <value><c>true</c> if this instance is single media list; otherwise, <c>false</c>.</value>
-        public bool IsSingleMediaList { get; set; }
+        /// <value><c>true</c> if this instance can filter; otherwise, <c>false</c>.</value>
+        public bool CanFilter { get; set; }
 
         public ChannelFeatures()
         {
@@ -57,9 +57,10 @@ namespace MediaBrowser.Model.Channels
     {
         Name = 0,
         CommunityRating = 1,
-        ReleaseDate = 2,
-        Runtime = 3,
-        CommunityMostWatched = 4,
-        UserPlayCount = 5
+        ContentReleaseDate = 2,
+        DateAdded = 3,
+        Runtime = 4,
+        CommunityMostWatched = 5,
+        UserPlayCount = 6
     }
 }
