@@ -1,17 +1,14 @@
-﻿using System.Collections.Generic;
-using System.Globalization;
-using System.Xml;
-using MediaBrowser.Controller.Entities;
+﻿using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Logging;
+using System.Collections.Generic;
+using System.Xml;
 
 namespace MediaBrowser.LocalMetadata.Parsers
 {
     public class BoxSetXmlParser : BaseItemXmlParser<BoxSet>
     {
-        private readonly CultureInfo UsCulture = new CultureInfo("en-US");
-
         public BoxSetXmlParser(ILogger logger)
             : base(logger)
         {
