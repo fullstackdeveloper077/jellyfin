@@ -1167,7 +1167,7 @@
     "LabelExtractChaptersDuringLibraryScan": "Extract chapter images during the library scan",
     "LabelExtractChaptersDuringLibraryScanHelp": "If enabled, chapter images will be extracted when videos are imported during the library scan. If disabled they will be extracted during the chapter images scheduled task, allowing the regular library scan to complete faster.",
     "LabelConnectUserName": "Media Browser username/email:",
-    "LabelConnectUserNameHelp": "Connect this user to a Media Browser account to enable easy sign-in access from any app without having to know the server ip address.",
+    "LabelConnectUserNameHelp": "Connect this user to a Media Browser account to enable easy sign-in access from Media Browser any app without having to know the server ip address.",
     "ButtonLearnMoreAboutMediaBrowserConnect": "Learn more about Media Browser Connect",
     "LabelExternalPlayers": "External players:",
     "LabelExternalPlayersHelp": "Display buttons to play content in external players. This is only available on devices that support url schemes, generally Android and iOS. With external players there is generally no support for remote control or resuming.",
@@ -1246,5 +1246,6 @@
     "OptionEveryday": "Every day",
     "OptionWeekdays": "Weekdays",
     "OptionWeekends": "Weekends",
-    "MessageProfileInfoSynced":  "User profile information synced with Media Browser Connect."
+    "MessageProfileInfoSynced": "User profile information synced with Media Browser Connect.",
+    "HeaderOptionalLinkMediaBrowserAccount": "Optional: Link your Media Browser account"
 }
