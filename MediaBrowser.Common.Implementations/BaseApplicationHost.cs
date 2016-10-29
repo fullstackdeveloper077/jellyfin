@@ -3,7 +3,6 @@ using MediaBrowser.Common.Events;
 using MediaBrowser.Common.Implementations.Devices;
 using MediaBrowser.Common.Implementations.IO;
 using MediaBrowser.Common.Implementations.ScheduledTasks;
-using MediaBrowser.Common.Implementations.Security;
 using MediaBrowser.Common.Implementations.Serialization;
 using MediaBrowser.Common.Implementations.Updates;
 using MediaBrowser.Common.Net;
@@ -31,6 +30,7 @@ using MediaBrowser.Common.Extensions;
 using MediaBrowser.Common.Implementations.Cryptography;
 using MediaBrowser.Common.IO;
 using MediaBrowser.Model.Cryptography;
+using MediaBrowser.Model.System;
 using MediaBrowser.Model.Tasks;
 
 namespace MediaBrowser.Common.Implementations
@@ -121,11 +121,6 @@ namespace MediaBrowser.Common.Implementations
         /// <value>The kernel.</value>
         protected ITaskManager TaskManager { get; private set; }
         /// <summary>
-        /// Gets the security manager.
-        /// </summary>
-        /// <value>The security manager.</value>
-        protected ISecurityManager SecurityManager { get; private set; }
-        /// <summary>
         /// Gets the HTTP client.
         /// </summary>
         /// <value>The HTTP client.</value>
@@ -142,15 +137,11 @@ namespace MediaBrowser.Common.Implementations
         /// <value>The configuration manager.</value>
         protected IConfigurationManager ConfigurationManager { get; private set; }
 
-        /// <summary>
-        /// Gets or sets the installation manager.
-        /// </summary>
-        /// <value>The installation manager.</value>
-        protected IInstallationManager InstallationManager { get; private set; }
-
         protected IFileSystem FileSystemManager { get; private set; }
 
         protected IIsoManager IsoManager { get; private set; }
+
+        protected ISystemEvents SystemEvents { get; private set; }
 
         /// <summary>
         /// Gets the name.
@@ -221,6 +212,7 @@ namespace MediaBrowser.Common.Implementations
             JsonSerializer = CreateJsonSerializer();
 
             MemoryStreamProvider = CreateMemoryStreamProvider();
+            SystemEvents = CreateSystemEvents();
 
             OnLoggerLoaded(true);
             LogManager.LoggerLoaded += (s, e) => OnLoggerLoaded(false);
@@ -254,6 +246,7 @@ namespace MediaBrowser.Common.Implementations
         }
 
         protected abstract IMemoryStreamProvider CreateMemoryStreamProvider();
+        protected abstract ISystemEvents CreateSystemEvents();
 
         protected virtual void OnLoggerLoaded(bool isFirstLoad)
         {
@@ -473,11 +466,12 @@ namespace MediaBrowser.Common.Implementations
 
             RegisterSingleInstance<IApplicationPaths>(ApplicationPaths);
 
-            TaskManager = new TaskManager(ApplicationPaths, JsonSerializer, LogManager.GetLogger("TaskManager"), FileSystemManager);
+            TaskManager = new TaskManager(ApplicationPaths, JsonSerializer, LogManager.GetLogger("TaskManager"), FileSystemManager, SystemEvents);
 
             RegisterSingleInstance(JsonSerializer);
             RegisterSingleInstance(XmlSerializer);
             RegisterSingleInstance(MemoryStreamProvider);
+            RegisterSingleInstance(SystemEvents);
 
             RegisterSingleInstance(LogManager);
             RegisterSingleInstance(Logger);
@@ -491,12 +485,6 @@ namespace MediaBrowser.Common.Implementations
 
             NetworkManager = CreateNetworkManager(LogManager.GetLogger("NetworkManager"));
             RegisterSingleInstance(NetworkManager);
-
-            SecurityManager = new PluginSecurityManager(this, HttpClient, JsonSerializer, ApplicationPaths, LogManager);
-            RegisterSingleInstance(SecurityManager);
-
-            InstallationManager = new InstallationManager(LogManager.GetLogger("InstallationManager"), this, ApplicationPaths, HttpClient, JsonSerializer, SecurityManager, ConfigurationManager, FileSystemManager);
-            RegisterSingleInstance(InstallationManager);
 
             IsoManager = new IsoManager();
             RegisterSingleInstance(IsoManager);

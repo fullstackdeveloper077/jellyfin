@@ -79,7 +79,7 @@ namespace MediaBrowser.Common.Implementations.Configuration
             get
             {
                 // Lazy load
-                LazyInitializer.EnsureInitialized(ref _configuration, ref _configurationLoaded, ref _configurationSyncLock, () => (BaseApplicationConfiguration)ConfigurationHelper.GetXmlConfiguration(ConfigurationType, CommonApplicationPaths.SystemConfigurationFilePath, XmlSerializer));
+                LazyInitializer.EnsureInitialized(ref _configuration, ref _configurationLoaded, ref _configurationSyncLock, () => (BaseApplicationConfiguration)ConfigurationHelper.GetXmlConfiguration(ConfigurationType, CommonApplicationPaths.SystemConfigurationFilePath, XmlSerializer, FileSystem));
                 return _configuration;
             }
             protected set
@@ -126,7 +126,7 @@ namespace MediaBrowser.Common.Implementations.Configuration
             Logger.Info("Saving system configuration");
             var path = CommonApplicationPaths.SystemConfigurationFilePath;
 
-            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            FileSystem.CreateDirectory(Path.GetDirectoryName(path));
 
             lock (_configurationSyncLock)
             {
@@ -196,9 +196,9 @@ namespace MediaBrowser.Common.Implementations.Configuration
                 && !string.Equals(CommonConfiguration.CachePath ?? string.Empty, newPath))
             {
                 // Validate
-                if (!Directory.Exists(newPath))
+                if (!FileSystem.DirectoryExists(newPath))
                 {
-                    throw new DirectoryNotFoundException(string.Format("{0} does not exist.", newPath));
+                    throw new FileNotFoundException(string.Format("{0} does not exist.", newPath));
                 }
 
                 EnsureWriteAccess(newPath);
@@ -253,7 +253,7 @@ namespace MediaBrowser.Common.Implementations.Configuration
             {
                 return Activator.CreateInstance(configurationType);
             }
-            catch (DirectoryNotFoundException)
+            catch (IOException)
             {
                 return Activator.CreateInstance(configurationType);
             }
@@ -293,7 +293,7 @@ namespace MediaBrowser.Common.Implementations.Configuration
             _configurations.AddOrUpdate(key, configuration, (k, v) => configuration);
 
             var path = GetConfigurationFile(key);
-            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            FileSystem.CreateDirectory(Path.GetDirectoryName(path));
 
             lock (_configurationSyncLock)
             {

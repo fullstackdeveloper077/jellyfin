@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using MediaBrowser.Common.IO;
 using MediaBrowser.Model.IO;
 using MediaBrowser.Model.Logging;
 
@@ -660,6 +659,11 @@ namespace MediaBrowser.Common.Implementations.IO
             return File.ReadAllText(path);
         }
 
+        public byte[] ReadAllBytes(string path)
+        {
+            return File.ReadAllBytes(path);
+        }
+
         public void WriteAllText(string path, string text, Encoding encoding)
         {
             File.WriteAllText(path, text, encoding);
@@ -668,6 +672,11 @@ namespace MediaBrowser.Common.Implementations.IO
         public void WriteAllText(string path, string text)
         {
             File.WriteAllText(path, text);
+        }
+
+        public void WriteAllBytes(string path, byte[] bytes)
+        {
+            File.WriteAllBytes(path, bytes);
         }
 
         public string ReadAllText(string path, Encoding encoding)

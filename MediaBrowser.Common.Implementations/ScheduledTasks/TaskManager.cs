@@ -12,6 +12,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using MediaBrowser.Common.IO;
 using MediaBrowser.Model.IO;
+using MediaBrowser.Model.System;
 using Microsoft.Win32;
 
 namespace MediaBrowser.Common.Implementations.ScheduledTasks
@@ -48,6 +49,8 @@ namespace MediaBrowser.Common.Implementations.ScheduledTasks
         /// <value>The application paths.</value>
         private IApplicationPaths ApplicationPaths { get; set; }
 
+        private readonly ISystemEvents _systemEvents;
+
         /// <summary>
         /// Gets the logger.
         /// </summary>
@@ -81,29 +84,23 @@ namespace MediaBrowser.Common.Implementations.ScheduledTasks
         /// <param name="jsonSerializer">The json serializer.</param>
         /// <param name="logger">The logger.</param>
         /// <exception cref="System.ArgumentException">kernel</exception>
-        public TaskManager(IApplicationPaths applicationPaths, IJsonSerializer jsonSerializer, ILogger logger, IFileSystem fileSystem)
+        public TaskManager(IApplicationPaths applicationPaths, IJsonSerializer jsonSerializer, ILogger logger, IFileSystem fileSystem, ISystemEvents systemEvents)
         {
             ApplicationPaths = applicationPaths;
             JsonSerializer = jsonSerializer;
             Logger = logger;
             _fileSystem = fileSystem;
+            _systemEvents = systemEvents;
 
             ScheduledTasks = new IScheduledTaskWorker[] { };
         }
 
         private void BindToSystemEvent()
         {
-            try
-            {
-                SystemEvents.PowerModeChanged += SystemEvents_PowerModeChanged;
-            }
-            catch
-            {
-
-            }
+            _systemEvents.Resume += _systemEvents_Resume;
         }
 
-        void SystemEvents_PowerModeChanged(object sender, PowerModeChangedEventArgs e)
+        private void _systemEvents_Resume(object sender, EventArgs e)
         {
             foreach (var task in ScheduledTasks)
             {
