@@ -6,7 +6,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\SharedVersion.cs" Link="SharedVersion.cs" />
+    <Compile Include="..\..\Jellyfin.Versioning\SharedVersion.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Jellyfin.Versioning\Jellyfin.Versioning.csproj" />
   </ItemGroup>
 
 </Project>
