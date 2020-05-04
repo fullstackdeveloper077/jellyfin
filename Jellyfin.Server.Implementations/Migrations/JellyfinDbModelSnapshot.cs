@@ -62,6 +62,257 @@ namespace Jellyfin.Server.Implementations.Migrations
 
                     b.ToTable("ActivityLog");
                 });
+
+            modelBuilder.Entity("Jellyfin.Data.Entities.Group", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("Group_Groups_Id")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasMaxLength(255);
+
+                    b.Property<uint>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Group_Groups_Id");
+
+                    b.ToTable("Group");
+                });
+
+            modelBuilder.Entity("Jellyfin.Data.Entities.Permission", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("Permission_GroupPermissions_Id")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("Permission_Permissions_Id")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<uint>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Value")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Permission_GroupPermissions_Id");
+
+                    b.HasIndex("Permission_Permissions_Id");
+
+                    b.ToTable("Permission");
+                });
+
+            modelBuilder.Entity("Jellyfin.Data.Entities.Preference", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("Preference_Preferences_Id")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<uint>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasMaxLength(65535);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Preference_Preferences_Id");
+
+                    b.ToTable("Preference");
+                });
+
+            modelBuilder.Entity("Jellyfin.Data.Entities.ProviderMapping", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ProviderData")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasMaxLength(65535);
+
+                    b.Property<int?>("ProviderMapping_ProviderMappings_Id")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ProviderName")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasMaxLength(255);
+
+                    b.Property<string>("ProviderSecrets")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasMaxLength(65535);
+
+                    b.Property<uint>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProviderMapping_ProviderMappings_Id");
+
+                    b.ToTable("ProviderMapping");
+                });
+
+            modelBuilder.Entity("Jellyfin.Data.Entities.User", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("AudioLanguagePreference")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasMaxLength(255);
+
+                    b.Property<string>("AuthenticationProviderId")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasMaxLength(255);
+
+                    b.Property<bool?>("DisplayCollectionsView")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool?>("DisplayMissingEpisodes")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool?>("EnableNextEpisodeAutoPlay")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool?>("EnableUserPreferenceAccess")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("GroupedFolders")
+                        .HasColumnType("TEXT")
+                        .HasMaxLength(65535);
+
+                    b.Property<bool?>("HidePlayedInLatest")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("InvalidLoginAttemptCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("LatestItemExcludes")
+                        .HasColumnType("TEXT")
+                        .HasMaxLength(65535);
+
+                    b.Property<int?>("LoginAttemptsBeforeLockout")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("MustUpdatePassword")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("MyMediaExcludes")
+                        .HasColumnType("TEXT")
+                        .HasMaxLength(65535);
+
+                    b.Property<string>("OrderedViews")
+                        .HasColumnType("TEXT")
+                        .HasMaxLength(65535);
+
+                    b.Property<string>("Password")
+                        .HasColumnType("TEXT")
+                        .HasMaxLength(65535);
+
+                    b.Property<bool>("PlayDefaultAudioTrack")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool?>("RememberAudioSelections")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool?>("RememberSubtitleSelections")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<uint>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("SubtitleLanguagePrefernce")
+                        .HasColumnType("TEXT")
+                        .HasMaxLength(255);
+
+                    b.Property<string>("SubtitleMode")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasMaxLength(255);
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasMaxLength(255);
+
+                    b.HasKey("Id");
+
+                    b.ToTable("User");
+                });
+
+            modelBuilder.Entity("Jellyfin.Data.Entities.Group", b =>
+                {
+                    b.HasOne("Jellyfin.Data.Entities.User", null)
+                        .WithMany("Groups")
+                        .HasForeignKey("Group_Groups_Id");
+                });
+
+            modelBuilder.Entity("Jellyfin.Data.Entities.Permission", b =>
+                {
+                    b.HasOne("Jellyfin.Data.Entities.Group", null)
+                        .WithMany("GroupPermissions")
+                        .HasForeignKey("Permission_GroupPermissions_Id");
+
+                    b.HasOne("Jellyfin.Data.Entities.User", null)
+                        .WithMany("Permissions")
+                        .HasForeignKey("Permission_Permissions_Id");
+                });
+
+            modelBuilder.Entity("Jellyfin.Data.Entities.Preference", b =>
+                {
+                    b.HasOne("Jellyfin.Data.Entities.Group", null)
+                        .WithMany("Preferences")
+                        .HasForeignKey("Preference_Preferences_Id");
+
+                    b.HasOne("Jellyfin.Data.Entities.User", null)
+                        .WithMany("Preferences")
+                        .HasForeignKey("Preference_Preferences_Id");
+                });
+
+            modelBuilder.Entity("Jellyfin.Data.Entities.ProviderMapping", b =>
+                {
+                    b.HasOne("Jellyfin.Data.Entities.Group", null)
+                        .WithMany("ProviderMappings")
+                        .HasForeignKey("ProviderMapping_ProviderMappings_Id");
+
+                    b.HasOne("Jellyfin.Data.Entities.User", null)
+                        .WithMany("ProviderMappings")
+                        .HasForeignKey("ProviderMapping_ProviderMappings_Id");
+                });
 #pragma warning restore 612, 618
         }
     }
