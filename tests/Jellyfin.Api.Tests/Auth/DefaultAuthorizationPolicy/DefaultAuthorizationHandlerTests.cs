@@ -39,11 +39,10 @@ namespace Jellyfin.Api.Tests.Auth.DefaultAuthorizationPolicy
         public async Task ShouldSucceedOnUser(string userRole)
         {
             TestHelpers.SetupConfigurationManager(_configurationManagerMock, true);
-            var (_, claims) = TestHelpers.SetupUser(
+            var claims = TestHelpers.SetupUser(
                 _userManagerMock,
                 _httpContextAccessor,
-                userRole,
-                TestHelpers.InternalIp);
+                userRole);
 
             var context = new AuthorizationHandlerContext(_requirements, claims, null);
 
