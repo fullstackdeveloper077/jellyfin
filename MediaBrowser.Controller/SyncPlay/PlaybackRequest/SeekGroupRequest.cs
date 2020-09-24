@@ -16,15 +16,15 @@ namespace MediaBrowser.Controller.SyncPlay
         public long PositionTicks { get; set; }
 
         /// <inheritdoc />
-        public PlaybackRequestType Type()
+        public PlaybackRequestType GetRequestType()
         {
             return PlaybackRequestType.Seek;
         }
 
         /// <inheritdoc />
-        public bool Apply(ISyncPlayStateContext context, ISyncPlayState state, SessionInfo session, CancellationToken cancellationToken)
+        public void Apply(ISyncPlayStateContext context, ISyncPlayState state, SessionInfo session, CancellationToken cancellationToken)
         {
-            return state.HandleRequest(context, false, this, session, cancellationToken);
+            state.HandleRequest(context, state.GetGroupState(), this, session, cancellationToken);
         }
     }
 }
