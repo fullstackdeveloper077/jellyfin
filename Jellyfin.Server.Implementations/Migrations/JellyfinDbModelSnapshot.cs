@@ -15,7 +15,7 @@ namespace Jellyfin.Server.Implementations.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("jellyfin")
-                .HasAnnotation("ProductVersion", "3.1.8");
+                .HasAnnotation("ProductVersion", "5.0.0");
 
             modelBuilder.Entity("Jellyfin.Data.Entities.AccessSchedule", b =>
                 {
@@ -52,33 +52,33 @@ namespace Jellyfin.Server.Implementations.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("ItemId")
-                        .HasColumnType("TEXT")
-                        .HasMaxLength(256);
+                        .HasMaxLength(256)
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("LogSeverity")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("TEXT")
-                        .HasMaxLength(512);
+                        .HasMaxLength(512)
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Overview")
-                        .HasColumnType("TEXT")
-                        .HasMaxLength(512);
+                        .HasMaxLength(512)
+                        .HasColumnType("TEXT");
 
                     b.Property<uint>("RowVersion")
                         .IsConcurrencyToken()
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("ShortOverview")
-                        .HasColumnType("TEXT")
-                        .HasMaxLength(512);
+                        .HasMaxLength(512)
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasColumnType("TEXT")
-                        .HasMaxLength(256);
+                        .HasMaxLength(256)
+                        .HasColumnType("TEXT");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("TEXT");
@@ -86,6 +86,38 @@ namespace Jellyfin.Server.Implementations.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("ActivityLogs");
+                });
+
+            modelBuilder.Entity("Jellyfin.Data.Entities.CustomItemDisplayPreferences", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Client")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserId", "Client", "Key")
+                        .IsUnique();
+
+                    b.ToTable("CustomItemDisplayPreferences");
                 });
 
             modelBuilder.Entity("Jellyfin.Data.Entities.DisplayPreferences", b =>
@@ -99,12 +131,12 @@ namespace Jellyfin.Server.Implementations.Migrations
 
                     b.Property<string>("Client")
                         .IsRequired()
-                        .HasColumnType("TEXT")
-                        .HasMaxLength(32);
+                        .HasMaxLength(32)
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("DashboardTheme")
-                        .HasColumnType("TEXT")
-                        .HasMaxLength(32);
+                        .HasMaxLength(32)
+                        .HasColumnType("TEXT");
 
                     b.Property<bool>("EnableNextVideoInfoOverlay")
                         .HasColumnType("INTEGER");
@@ -128,8 +160,8 @@ namespace Jellyfin.Server.Implementations.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("TvHome")
-                        .HasColumnType("TEXT")
-                        .HasMaxLength(32);
+                        .HasMaxLength(32)
+                        .HasColumnType("TEXT");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("TEXT");
@@ -177,8 +209,8 @@ namespace Jellyfin.Server.Implementations.Migrations
 
                     b.Property<string>("Path")
                         .IsRequired()
-                        .HasColumnType("TEXT")
-                        .HasMaxLength(512);
+                        .HasMaxLength(512)
+                        .HasColumnType("TEXT");
 
                     b.Property<Guid?>("UserId")
                         .HasColumnType("TEXT");
@@ -199,8 +231,8 @@ namespace Jellyfin.Server.Implementations.Migrations
 
                     b.Property<string>("Client")
                         .IsRequired()
-                        .HasColumnType("TEXT")
-                        .HasMaxLength(32);
+                        .HasMaxLength(32)
+                        .HasColumnType("TEXT");
 
                     b.Property<int?>("IndexBy")
                         .HasColumnType("INTEGER");
@@ -216,8 +248,8 @@ namespace Jellyfin.Server.Implementations.Migrations
 
                     b.Property<string>("SortBy")
                         .IsRequired()
-                        .HasColumnType("TEXT")
-                        .HasMaxLength(64);
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("SortOrder")
                         .HasColumnType("INTEGER");
@@ -279,8 +311,8 @@ namespace Jellyfin.Server.Implementations.Migrations
 
                     b.Property<string>("Value")
                         .IsRequired()
-                        .HasColumnType("TEXT")
-                        .HasMaxLength(65535);
+                        .HasMaxLength(65535)
+                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
@@ -296,13 +328,13 @@ namespace Jellyfin.Server.Implementations.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("AudioLanguagePreference")
-                        .HasColumnType("TEXT")
-                        .HasMaxLength(255);
+                        .HasMaxLength(255)
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("AuthenticationProviderId")
                         .IsRequired()
-                        .HasColumnType("TEXT")
-                        .HasMaxLength(255);
+                        .HasMaxLength(255)
+                        .HasColumnType("TEXT");
 
                     b.Property<bool>("DisplayCollectionsView")
                         .HasColumnType("INTEGER");
@@ -311,8 +343,8 @@ namespace Jellyfin.Server.Implementations.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("EasyPassword")
-                        .HasColumnType("TEXT")
-                        .HasMaxLength(65535);
+                        .HasMaxLength(65535)
+                        .HasColumnType("TEXT");
 
                     b.Property<bool>("EnableAutoLogin")
                         .HasColumnType("INTEGER");
@@ -354,13 +386,13 @@ namespace Jellyfin.Server.Implementations.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Password")
-                        .HasColumnType("TEXT")
-                        .HasMaxLength(65535);
+                        .HasMaxLength(65535)
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("PasswordResetProviderId")
                         .IsRequired()
-                        .HasColumnType("TEXT")
-                        .HasMaxLength(255);
+                        .HasMaxLength(255)
+                        .HasColumnType("TEXT");
 
                     b.Property<bool>("PlayDefaultAudioTrack")
                         .HasColumnType("INTEGER");
@@ -379,8 +411,8 @@ namespace Jellyfin.Server.Implementations.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("SubtitleLanguagePreference")
-                        .HasColumnType("TEXT")
-                        .HasMaxLength(255);
+                        .HasMaxLength(255)
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("SubtitleMode")
                         .HasColumnType("INTEGER");
@@ -390,8 +422,8 @@ namespace Jellyfin.Server.Implementations.Migrations
 
                     b.Property<string>("Username")
                         .IsRequired()
-                        .HasColumnType("TEXT")
-                        .HasMaxLength(255);
+                        .HasMaxLength(255)
+                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
@@ -453,6 +485,27 @@ namespace Jellyfin.Server.Implementations.Migrations
                     b.HasOne("Jellyfin.Data.Entities.User", null)
                         .WithMany("Preferences")
                         .HasForeignKey("Preference_Preferences_Guid");
+                });
+
+            modelBuilder.Entity("Jellyfin.Data.Entities.DisplayPreferences", b =>
+                {
+                    b.Navigation("HomeSections");
+                });
+
+            modelBuilder.Entity("Jellyfin.Data.Entities.User", b =>
+                {
+                    b.Navigation("AccessSchedules");
+
+                    b.Navigation("DisplayPreferences")
+                        .IsRequired();
+
+                    b.Navigation("ItemDisplayPreferences");
+
+                    b.Navigation("Permissions");
+
+                    b.Navigation("Preferences");
+
+                    b.Navigation("ProfileImage");
                 });
 #pragma warning restore 612, 618
         }
