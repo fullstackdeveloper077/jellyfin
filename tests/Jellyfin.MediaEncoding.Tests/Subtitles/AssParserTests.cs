@@ -21,18 +21,8 @@ namespace Jellyfin.MediaEncoding.Subtitles.Tests
                 Assert.Equal("1", trackEvent.Id);
                 Assert.Equal(TimeSpan.Parse("00:00:01.18", CultureInfo.InvariantCulture).Ticks, trackEvent.StartPositionTicks);
                 Assert.Equal(TimeSpan.Parse("00:00:06.85", CultureInfo.InvariantCulture).Ticks, trackEvent.EndPositionTicks);
-                Assert.Equal("Like an Angel with pity on nobody\r\nThe second line in subtitle", trackEvent.Text);
+                Assert.Equal("{\\pos(400,570)}Like an Angel with pity on nobody\nThe second line in subtitle", trackEvent.Text);
             }
-        }
-
-        [Fact]
-        public void ParseFieldHeaders_Valid_Success()
-        {
-            const string Line = "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text";
-            var headers = AssParser.ParseFieldHeaders(Line);
-            Assert.Equal(1, headers["Start"]);
-            Assert.Equal(2, headers["End"]);
-            Assert.Equal(9, headers["Text"]);
         }
     }
 }
