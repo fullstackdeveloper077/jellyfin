@@ -27,6 +27,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Jellyfin.MediaEncoding.Hls\Jellyfin.MediaEncoding.Hls.csproj" />
+    <ProjectReference Include="..\..\src\Jellyfin.MediaEncoding.Keyframes\Jellyfin.MediaEncoding.Keyframes.csproj" />
   </ItemGroup>
 
 </Project>
