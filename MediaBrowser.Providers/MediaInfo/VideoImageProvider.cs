@@ -17,6 +17,9 @@ using Microsoft.Extensions.Logging;
 
 namespace MediaBrowser.Providers.MediaInfo
 {
+    /// <summary>
+    /// Uses ffmpeg to create still images from the main video.
+    /// </summary>
     public class VideoImageProvider : IDynamicImageProvider, IHasOrder
     {
         private readonly IMediaEncoder _mediaEncoder;
@@ -71,36 +74,15 @@ namespace MediaBrowser.Providers.MediaInfo
                 Protocol = item.PathProtocol ?? MediaProtocol.File,
             };
 
-            var mediaStreams =
-                item.GetMediaStreams();
+            // If we know the duration, grab it from 10% into the video. Otherwise just 10 seconds in.
+            // Always use 10 seconds for dvd because our duration could be out of whack
+            var imageOffset = item.VideoType != VideoType.Dvd && item.RunTimeTicks.HasValue &&
+                              item.RunTimeTicks.Value > 0
+                                  ? TimeSpan.FromTicks(item.RunTimeTicks.Value / 10)
+                                  : TimeSpan.FromSeconds(10);
 
-            var imageStreams =
-                mediaStreams
-                    .Where(i => i.Type == MediaStreamType.EmbeddedImage)
-                    .ToList();
-
-            string extractedImagePath;
-
-            if (imageStreams.Count == 0)
-            {
-                // If we know the duration, grab it from 10% into the video. Otherwise just 10 seconds in.
-                // Always use 10 seconds for dvd because our duration could be out of whack
-                var imageOffset = item.VideoType != VideoType.Dvd && item.RunTimeTicks.HasValue &&
-                                  item.RunTimeTicks.Value > 0
-                                      ? TimeSpan.FromTicks(item.RunTimeTicks.Value / 10)
-                                      : TimeSpan.FromSeconds(10);
-
-                var videoStream = mediaStreams.FirstOrDefault(i => i.Type == MediaStreamType.Video);
-                extractedImagePath = await _mediaEncoder.ExtractVideoImage(item.Path, item.Container, mediaSource, videoStream, item.Video3DFormat, imageOffset, cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                var imageStream = imageStreams.Find(i => (i.Comment ?? string.Empty).Contains("front", StringComparison.OrdinalIgnoreCase))
-                    ?? imageStreams.Find(i => (i.Comment ?? string.Empty).Contains("cover", StringComparison.OrdinalIgnoreCase))
-                    ?? imageStreams[0];
-
-                extractedImagePath = await _mediaEncoder.ExtractVideoImage(item.Path, item.Container, mediaSource, imageStream, imageStream.Index, cancellationToken).ConfigureAwait(false);
-            }
+            var videoStream = item.GetMediaStreams().FirstOrDefault(i => i.Type == MediaStreamType.Video);
+            string extractedImagePath = await _mediaEncoder.ExtractVideoImage(item.Path, item.Container, mediaSource, videoStream, item.Video3DFormat, imageOffset, cancellationToken).ConfigureAwait(false);
 
             return new DynamicImageResponse
             {
