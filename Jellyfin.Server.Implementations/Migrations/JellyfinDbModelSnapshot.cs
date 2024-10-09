@@ -15,7 +15,7 @@ namespace Jellyfin.Server.Implementations.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "8.0.8");
+            modelBuilder.HasAnnotation("ProductVersion", "8.0.10");
 
             modelBuilder.Entity("Jellyfin.Data.Entities.AccessSchedule", b =>
                 {
@@ -154,8 +154,8 @@ namespace Jellyfin.Server.Implementations.Migrations
                     b.Property<string>("Artists")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Audio")
-                        .HasColumnType("TEXT");
+                    b.Property<int?>("Audio")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("ChannelId")
                         .HasColumnType("TEXT");
@@ -208,8 +208,8 @@ namespace Jellyfin.Server.Implementations.Migrations
                     b.Property<string>("ExtraIds")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("ExtraType")
-                        .HasColumnType("TEXT");
+                    b.Property<int?>("ExtraType")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("ForcedSortName")
                         .HasColumnType("TEXT");
@@ -219,9 +219,6 @@ namespace Jellyfin.Server.Implementations.Migrations
 
                     b.Property<int?>("Height")
                         .HasColumnType("INTEGER");
-
-                    b.Property<string>("Images")
-                        .HasColumnType("TEXT");
 
                     b.Property<int?>("IndexNumber")
                         .HasColumnType("INTEGER");
@@ -252,9 +249,6 @@ namespace Jellyfin.Server.Implementations.Migrations
 
                     b.Property<float?>("LUFS")
                         .HasColumnType("REAL");
-
-                    b.Property<string>("LockedFields")
-                        .HasColumnType("TEXT");
 
                     b.Property<string>("MediaType")
                         .HasColumnType("TEXT");
@@ -352,9 +346,6 @@ namespace Jellyfin.Server.Implementations.Migrations
                     b.Property<int?>("TotalBitrate")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("TrailerTypes")
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("Type")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -401,6 +392,56 @@ namespace Jellyfin.Server.Implementations.Migrations
                     b.ToTable("BaseItems");
                 });
 
+            modelBuilder.Entity("Jellyfin.Data.Entities.BaseItemImageInfo", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("Blurhash")
+                        .HasColumnType("BLOB");
+
+                    b.Property<DateTime>("DateModified")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Height")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ImageType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Path")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Width")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ItemId");
+
+                    b.ToTable("BaseItemImageInfos");
+                });
+
+            modelBuilder.Entity("Jellyfin.Data.Entities.BaseItemMetadataField", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id", "ItemId");
+
+                    b.HasIndex("ItemId");
+
+                    b.ToTable("BaseItemMetadataFields");
+                });
+
             modelBuilder.Entity("Jellyfin.Data.Entities.BaseItemProvider", b =>
                 {
                     b.Property<Guid>("ItemId")
@@ -418,6 +459,21 @@ namespace Jellyfin.Server.Implementations.Migrations
                     b.HasIndex("ProviderId", "ProviderValue", "ItemId");
 
                     b.ToTable("BaseItemProviders");
+                });
+
+            modelBuilder.Entity("Jellyfin.Data.Entities.BaseItemTrailerType", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id", "ItemId");
+
+                    b.HasIndex("ItemId");
+
+                    b.ToTable("BaseItemTrailerTypes");
                 });
 
             modelBuilder.Entity("Jellyfin.Data.Entities.Chapter", b =>
@@ -1268,10 +1324,43 @@ namespace Jellyfin.Server.Implementations.Migrations
                     b.Navigation("Item");
                 });
 
+            modelBuilder.Entity("Jellyfin.Data.Entities.BaseItemImageInfo", b =>
+                {
+                    b.HasOne("Jellyfin.Data.Entities.BaseItemEntity", "Item")
+                        .WithMany("Images")
+                        .HasForeignKey("ItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Item");
+                });
+
+            modelBuilder.Entity("Jellyfin.Data.Entities.BaseItemMetadataField", b =>
+                {
+                    b.HasOne("Jellyfin.Data.Entities.BaseItemEntity", "Item")
+                        .WithMany("LockedFields")
+                        .HasForeignKey("ItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Item");
+                });
+
             modelBuilder.Entity("Jellyfin.Data.Entities.BaseItemProvider", b =>
                 {
                     b.HasOne("Jellyfin.Data.Entities.BaseItemEntity", "Item")
                         .WithMany("Provider")
+                        .HasForeignKey("ItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Item");
+                });
+
+            modelBuilder.Entity("Jellyfin.Data.Entities.BaseItemTrailerType", b =>
+                {
+                    b.HasOne("Jellyfin.Data.Entities.BaseItemEntity", "Item")
+                        .WithMany("TrailerTypes")
                         .HasForeignKey("ItemId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1406,13 +1495,19 @@ namespace Jellyfin.Server.Implementations.Migrations
 
                     b.Navigation("Chapters");
 
+                    b.Navigation("Images");
+
                     b.Navigation("ItemValues");
+
+                    b.Navigation("LockedFields");
 
                     b.Navigation("MediaStreams");
 
                     b.Navigation("Peoples");
 
                     b.Navigation("Provider");
+
+                    b.Navigation("TrailerTypes");
 
                     b.Navigation("UserData");
                 });
