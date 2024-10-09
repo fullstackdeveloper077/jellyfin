@@ -95,17 +95,17 @@ namespace Jellyfin.Server.Implementations.Migrations
                     b.Property<Guid>("ItemId")
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid>("Id")
+                    b.Property<Guid>("ParentItemId")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("AncestorIdText")
+                    b.Property<Guid?>("BaseItemEntityId")
                         .HasColumnType("TEXT");
 
-                    b.HasKey("ItemId", "Id");
+                    b.HasKey("ItemId", "ParentItemId");
 
-                    b.HasIndex("Id");
+                    b.HasIndex("BaseItemEntityId");
 
-                    b.HasIndex("ItemId", "AncestorIdText");
+                    b.HasIndex("ParentItemId");
 
                     b.ToTable("AncestorIds");
                 });
@@ -865,8 +865,8 @@ namespace Jellyfin.Server.Implementations.Migrations
                     b.Property<int>("SampleRate")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("StreamType")
-                        .HasColumnType("TEXT");
+                    b.Property<int?>("StreamType")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("TimeBase")
                         .IsRequired()
@@ -1304,13 +1304,9 @@ namespace Jellyfin.Server.Implementations.Migrations
 
             modelBuilder.Entity("Jellyfin.Data.Entities.AncestorId", b =>
                 {
-                    b.HasOne("Jellyfin.Data.Entities.BaseItemEntity", "Item")
+                    b.HasOne("Jellyfin.Data.Entities.BaseItemEntity", null)
                         .WithMany("AncestorIds")
-                        .HasForeignKey("ItemId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Item");
+                        .HasForeignKey("BaseItemEntityId");
                 });
 
             modelBuilder.Entity("Jellyfin.Data.Entities.AttachmentStreamInfo", b =>
