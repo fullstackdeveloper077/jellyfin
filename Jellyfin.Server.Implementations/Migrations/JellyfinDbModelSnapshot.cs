@@ -683,24 +683,41 @@ namespace Jellyfin.Server.Implementations.Migrations
 
             modelBuilder.Entity("Jellyfin.Data.Entities.ItemValue", b =>
                 {
-                    b.Property<Guid>("ItemId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Value")
+                    b.Property<Guid>("ItemValueId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("CleanValue")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.HasKey("ItemId", "Type", "Value");
+                    b.Property<int>("Type")
+                        .HasColumnType("INTEGER");
 
-                    b.HasIndex("ItemId", "Type", "CleanValue");
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("ItemValueId");
+
+                    b.HasIndex("Type", "CleanValue");
 
                     b.ToTable("ItemValues");
+                });
+
+            modelBuilder.Entity("Jellyfin.Data.Entities.ItemValueMap", b =>
+                {
+                    b.Property<Guid>("ItemValueId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("ItemValueId", "ItemId");
+
+                    b.HasIndex("ItemId");
+
+                    b.ToTable("ItemValuesMap");
                 });
 
             modelBuilder.Entity("Jellyfin.Data.Entities.MediaSegment", b =>
@@ -1307,6 +1324,22 @@ namespace Jellyfin.Server.Implementations.Migrations
                     b.HasOne("Jellyfin.Data.Entities.BaseItemEntity", null)
                         .WithMany("AncestorIds")
                         .HasForeignKey("BaseItemEntityId");
+
+                    b.HasOne("Jellyfin.Data.Entities.BaseItemEntity", "Item")
+                        .WithMany()
+                        .HasForeignKey("ItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Jellyfin.Data.Entities.BaseItemEntity", "ParentItem")
+                        .WithMany()
+                        .HasForeignKey("ParentItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Item");
+
+                    b.Navigation("ParentItem");
                 });
 
             modelBuilder.Entity("Jellyfin.Data.Entities.AttachmentStreamInfo", b =>
@@ -1410,7 +1443,7 @@ namespace Jellyfin.Server.Implementations.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Jellyfin.Data.Entities.ItemValue", b =>
+            modelBuilder.Entity("Jellyfin.Data.Entities.ItemValueMap", b =>
                 {
                     b.HasOne("Jellyfin.Data.Entities.BaseItemEntity", "Item")
                         .WithMany("ItemValues")
@@ -1418,7 +1451,15 @@ namespace Jellyfin.Server.Implementations.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Jellyfin.Data.Entities.ItemValue", "ItemValue")
+                        .WithMany("BaseItemsMap")
+                        .HasForeignKey("ItemValueId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Item");
+
+                    b.Navigation("ItemValue");
                 });
 
             modelBuilder.Entity("Jellyfin.Data.Entities.MediaStreamInfo", b =>
@@ -1511,6 +1552,11 @@ namespace Jellyfin.Server.Implementations.Migrations
             modelBuilder.Entity("Jellyfin.Data.Entities.DisplayPreferences", b =>
                 {
                     b.Navigation("HomeSections");
+                });
+
+            modelBuilder.Entity("Jellyfin.Data.Entities.ItemValue", b =>
+                {
+                    b.Navigation("BaseItemsMap");
                 });
 
             modelBuilder.Entity("Jellyfin.Data.Entities.User", b =>
