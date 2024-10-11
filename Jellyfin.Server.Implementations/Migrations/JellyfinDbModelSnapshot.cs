@@ -911,14 +911,9 @@ namespace Jellyfin.Server.Implementations.Migrations
 
             modelBuilder.Entity("Jellyfin.Data.Entities.People", b =>
                 {
-                    b.Property<Guid>("ItemId")
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
-
-                    b.Property<string>("Role")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int?>("ListOrder")
-                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -927,16 +922,39 @@ namespace Jellyfin.Server.Implementations.Migrations
                     b.Property<string>("PersonType")
                         .HasColumnType("TEXT");
 
-                    b.Property<int?>("SortOrder")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("ItemId", "Role", "ListOrder");
+                    b.HasKey("Id");
 
                     b.HasIndex("Name");
 
+                    b.ToTable("Peoples");
+                });
+
+            modelBuilder.Entity("Jellyfin.Data.Entities.PeopleBaseItemMap", b =>
+                {
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("PeopleId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("ListOrder")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Role")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("SortOrder")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("ItemId", "PeopleId");
+
+                    b.HasIndex("PeopleId");
+
                     b.HasIndex("ItemId", "ListOrder");
 
-                    b.ToTable("Peoples");
+                    b.HasIndex("ItemId", "SortOrder");
+
+                    b.ToTable("PeopleBaseItemMap");
                 });
 
             modelBuilder.Entity("Jellyfin.Data.Entities.Permission", b =>
@@ -1473,7 +1491,7 @@ namespace Jellyfin.Server.Implementations.Migrations
                     b.Navigation("Item");
                 });
 
-            modelBuilder.Entity("Jellyfin.Data.Entities.People", b =>
+            modelBuilder.Entity("Jellyfin.Data.Entities.PeopleBaseItemMap", b =>
                 {
                     b.HasOne("Jellyfin.Data.Entities.BaseItemEntity", "Item")
                         .WithMany("Peoples")
@@ -1481,7 +1499,15 @@ namespace Jellyfin.Server.Implementations.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Jellyfin.Data.Entities.People", "People")
+                        .WithMany("BaseItems")
+                        .HasForeignKey("PeopleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Item");
+
+                    b.Navigation("People");
                 });
 
             modelBuilder.Entity("Jellyfin.Data.Entities.Permission", b =>
@@ -1557,6 +1583,11 @@ namespace Jellyfin.Server.Implementations.Migrations
             modelBuilder.Entity("Jellyfin.Data.Entities.ItemValue", b =>
                 {
                     b.Navigation("BaseItemsMap");
+                });
+
+            modelBuilder.Entity("Jellyfin.Data.Entities.People", b =>
+                {
+                    b.Navigation("BaseItems");
                 });
 
             modelBuilder.Entity("Jellyfin.Data.Entities.User", b =>
