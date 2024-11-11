@@ -1276,6 +1276,9 @@ namespace Jellyfin.Server.Implementations.Migrations
                     b.Property<Guid>("UserId")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("CustomDataKey")
+                        .HasColumnType("TEXT");
+
                     b.Property<int?>("AudioStreamIndex")
                         .HasColumnType("INTEGER");
 
@@ -1303,7 +1306,7 @@ namespace Jellyfin.Server.Implementations.Migrations
                     b.Property<int?>("SubtitleStreamIndex")
                         .HasColumnType("INTEGER");
 
-                    b.HasKey("ItemId", "UserId");
+                    b.HasKey("ItemId", "UserId", "CustomDataKey");
 
                     b.HasIndex("UserId");
 
