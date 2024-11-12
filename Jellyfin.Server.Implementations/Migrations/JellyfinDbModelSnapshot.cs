@@ -748,76 +748,70 @@ namespace Jellyfin.Server.Implementations.Migrations
                     b.Property<string>("AspectRatio")
                         .HasColumnType("TEXT");
 
-                    b.Property<float>("AverageFrameRate")
+                    b.Property<float?>("AverageFrameRate")
                         .HasColumnType("REAL");
 
-                    b.Property<int>("BitDepth")
+                    b.Property<int?>("BitDepth")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("BitRate")
+                    b.Property<int?>("BitRate")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("BlPresentFlag")
+                    b.Property<int?>("BlPresentFlag")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("ChannelLayout")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("Channels")
+                    b.Property<int?>("Channels")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Codec")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("CodecTag")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("CodecTimeBase")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("ColorPrimaries")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("ColorSpace")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("ColorTransfer")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Comment")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("DvBlSignalCompatibilityId")
+                    b.Property<int?>("DvBlSignalCompatibilityId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("DvLevel")
+                    b.Property<int?>("DvLevel")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("DvProfile")
+                    b.Property<int?>("DvProfile")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("DvVersionMajor")
+                    b.Property<int?>("DvVersionMajor")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("DvVersionMinor")
+                    b.Property<int?>("DvVersionMinor")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("ElPresentFlag")
+                    b.Property<int?>("ElPresentFlag")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Height")
+                    b.Property<int?>("Height")
                         .HasColumnType("INTEGER");
 
-                    b.Property<bool>("IsAnamorphic")
+                    b.Property<bool?>("IsAnamorphic")
                         .HasColumnType("INTEGER");
 
-                    b.Property<bool>("IsAvc")
+                    b.Property<bool?>("IsAvc")
                         .HasColumnType("INTEGER");
 
                     b.Property<bool>("IsDefault")
@@ -829,10 +823,10 @@ namespace Jellyfin.Server.Implementations.Migrations
                     b.Property<bool>("IsForced")
                         .HasColumnType("INTEGER");
 
-                    b.Property<bool>("IsHearingImpaired")
+                    b.Property<bool?>("IsHearingImpaired")
                         .HasColumnType("INTEGER");
 
-                    b.Property<bool>("IsInterlaced")
+                    b.Property<bool?>("IsInterlaced")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("KeyFrames")
@@ -841,11 +835,10 @@ namespace Jellyfin.Server.Implementations.Migrations
                     b.Property<string>("Language")
                         .HasColumnType("TEXT");
 
-                    b.Property<float>("Level")
+                    b.Property<float?>("Level")
                         .HasColumnType("REAL");
 
                     b.Property<string>("NalLengthSize")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Path")
@@ -857,33 +850,31 @@ namespace Jellyfin.Server.Implementations.Migrations
                     b.Property<string>("Profile")
                         .HasColumnType("TEXT");
 
-                    b.Property<float>("RealFrameRate")
+                    b.Property<float?>("RealFrameRate")
                         .HasColumnType("REAL");
 
-                    b.Property<int>("RefFrames")
+                    b.Property<int?>("RefFrames")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Rotation")
+                    b.Property<int?>("Rotation")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("RpuPresentFlag")
+                    b.Property<int?>("RpuPresentFlag")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("SampleRate")
+                    b.Property<int?>("SampleRate")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("StreamType")
+                    b.Property<int>("StreamType")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("TimeBase")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Title")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("Width")
+                    b.Property<int?>("Width")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("ItemId", "StreamIndex");
