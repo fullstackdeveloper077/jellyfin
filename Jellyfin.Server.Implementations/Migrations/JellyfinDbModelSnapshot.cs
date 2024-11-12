@@ -98,12 +98,7 @@ namespace Jellyfin.Server.Implementations.Migrations
                     b.Property<Guid>("ParentItemId")
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid?>("BaseItemEntityId")
-                        .HasColumnType("TEXT");
-
                     b.HasKey("ItemId", "ParentItemId");
-
-                    b.HasIndex("BaseItemEntityId");
 
                     b.HasIndex("ParentItemId");
 
@@ -1332,18 +1327,14 @@ namespace Jellyfin.Server.Implementations.Migrations
 
             modelBuilder.Entity("Jellyfin.Data.Entities.AncestorId", b =>
                 {
-                    b.HasOne("Jellyfin.Data.Entities.BaseItemEntity", null)
-                        .WithMany("AncestorIds")
-                        .HasForeignKey("BaseItemEntityId");
-
                     b.HasOne("Jellyfin.Data.Entities.BaseItemEntity", "Item")
-                        .WithMany()
+                        .WithMany("Children")
                         .HasForeignKey("ItemId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Jellyfin.Data.Entities.BaseItemEntity", "ParentItem")
-                        .WithMany()
+                        .WithMany("ParentAncestors")
                         .HasForeignKey("ParentItemId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1551,9 +1542,9 @@ namespace Jellyfin.Server.Implementations.Migrations
 
             modelBuilder.Entity("Jellyfin.Data.Entities.BaseItemEntity", b =>
                 {
-                    b.Navigation("AncestorIds");
-
                     b.Navigation("Chapters");
+
+                    b.Navigation("Children");
 
                     b.Navigation("Images");
 
@@ -1562,6 +1553,8 @@ namespace Jellyfin.Server.Implementations.Migrations
                     b.Navigation("LockedFields");
 
                     b.Navigation("MediaStreams");
+
+                    b.Navigation("ParentAncestors");
 
                     b.Navigation("Peoples");
 
