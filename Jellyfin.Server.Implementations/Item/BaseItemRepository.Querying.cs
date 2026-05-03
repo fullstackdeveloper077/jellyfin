@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Jellyfin.Data.Enums;
 using Jellyfin.Database.Implementations;
@@ -125,53 +124,69 @@ public sealed partial class BaseItemRepository
             return GetLatestTvShowItems(context, baseQuery, filter, limit);
         }
 
-        // Find the top N group keys ordered by most recent DateCreated.
-        // Movies group by PresentationUniqueKey (alternate versions like 4K/1080p share a key).
-        // Music groups by Album.
-        Expression<Func<BaseItemEntity, bool>> groupKeyFilter;
-        Expression<Func<BaseItemEntity, string?>> groupKeySelector;
-
+        // Resolve the top N result item ids in a single SQL statement, ordered by the
+        // group's most recent DateCreated. Movies and music differ in what an "item"
+        // is, so the grouping shape is per-branch.
+        List<Guid> firstIds;
         if (collectionType is CollectionType.movies)
         {
-            groupKeyFilter = e => e.PresentationUniqueKey != null;
-            groupKeySelector = e => e.PresentationUniqueKey;
+            // Movies group by PresentationUniqueKey. Alternate versions (4K/1080p of the
+            // same movie) share that key, but they're already filtered out upstream by
+            // PrimaryVersionId IS NULL.
+            var topGroupItems = baseQuery
+                .Where(e => e.PresentationUniqueKey != null)
+                .GroupBy(e => e.PresentationUniqueKey)
+                .Select(g => new
+                {
+                    MaxDate = g.Max(e => e.DateCreated),
+                    FirstId = g.OrderByDescending(e => e.DateCreated).ThenByDescending(e => e.Id).Select(e => e.Id).First()
+                })
+                .OrderByDescending(g => g.MaxDate);
+
+            var idsQuery = filter.Limit.HasValue
+                ? topGroupItems.Take(filter.Limit.Value).Select(g => g.FirstId)
+                : topGroupItems.Select(g => g.FirstId);
+
+            firstIds = idsQuery.ToList();
         }
         else
         {
-            groupKeyFilter = e => e.Album != null;
-            groupKeySelector = e => e.Album;
+            // Music returns MusicAlbum entities, ordered by their latest track's
+            // DateCreated. Group by the MusicAlbum ancestor of each track via
+            // AncestorIds.
+            var musicAlbumType = _itemTypeLookup.BaseItemKindNames[BaseItemKind.MusicAlbum]!;
+
+            var topGroupItems =
+                from ancestor in context.AncestorIds
+                join track in baseQuery on ancestor.ItemId equals track.Id
+                join album in context.BaseItems on ancestor.ParentItemId equals album.Id
+                where album.Type == musicAlbumType
+                group track.DateCreated by album.Id into g
+                orderby g.Max() descending
+                select new { AlbumId = g.Key, MaxDate = g.Max() };
+
+            var idsQuery = filter.Limit.HasValue
+                ? topGroupItems.Take(filter.Limit.Value).Select(g => g.AlbumId)
+                : topGroupItems.Select(g => g.AlbumId);
+
+            firstIds = idsQuery.ToList();
         }
 
-        // Group by GroupKey, pick the latest item per group (correlated subquery: ORDER BY DateCreated DESC, Id DESC LIMIT 1),
-        // order groups by group max date, take the top N — all in a single SQL statement.
-        // ThenByDescending(Id) is the tiebreaker for deterministic ordering when items share a DateCreated.
-        var topGroupItems = baseQuery
-            .Where(groupKeyFilter)
-            .GroupBy(groupKeySelector)
-            .Select(g => new
-            {
-                MaxDate = g.Max(e => e.DateCreated),
-                FirstId = g.OrderByDescending(e => e.DateCreated).ThenByDescending(e => e.Id).Select(e => e.Id).First()
-            })
-            .OrderByDescending(g => g.MaxDate);
+        // Load the result items by id. The order from firstIds is the group ordering
+        // we want; we re-apply it via dictionary lookup because for music the loaded
+        // album's own DateCreated may not match the album's latest-track date, so a
+        // SQL ORDER BY DateCreated wouldn't preserve it.
+        var itemsQuery = ApplyNavigations(
+            context.BaseItems.AsNoTracking().WhereOneOrMany(firstIds, e => e.Id),
+            filter);
 
-        var firstIdsQuery = filter.Limit.HasValue
-            ? topGroupItems.Take(filter.Limit.Value).Select(g => g.FirstId)
-            : topGroupItems.Select(g => g.FirstId);
-
-        var firstIds = firstIdsQuery.ToList();
-
-        // Single bound JSON / array parameter via WhereOneOrMany — keeps SQL small regardless of N.
-        var itemsQuery = context.BaseItems.AsNoTracking().WhereOneOrMany(firstIds, e => e.Id);
-        itemsQuery = ApplyNavigations(itemsQuery, filter);
-
-        return itemsQuery
-            .OrderByDescending(e => e.DateCreated)
-            .ThenByDescending(e => e.Id)
+        var itemsById = itemsQuery
             .AsEnumerable()
             .Select(w => DeserializeBaseItem(w, filter.SkipDeserialization))
             .Where(dto => dto != null)
-            .ToArray()!;
+            .ToDictionary(i => i!.Id);
+
+        return firstIds.Where(itemsById.ContainsKey).Select(id => itemsById[id]).ToArray()!;
     }
 
     /// <summary>
