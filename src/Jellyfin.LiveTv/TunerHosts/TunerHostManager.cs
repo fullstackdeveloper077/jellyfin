@@ -107,11 +107,12 @@ public class TunerHostManager : ITunerHostManager
         config.TunerHosts = config.TunerHosts.Where(i => !string.Equals(id, i.Id, StringComparison.OrdinalIgnoreCase)).ToArray();
         _config.SaveConfiguration("livetv", config);
 
-        // Clean up the disk cache file for this tuner
-        if (!string.IsNullOrEmpty(id))
+        // Clean up the disk cache file for this tuner.
+        // Tuner IDs are generated as Guid.NewGuid().ToString("N")
+        // reject anything else so we never use untrusted input in a path or log entry
+        if (Guid.TryParseExact(id, "N", out var tunerGuid))
         {
-            // Sanitize to prevent path traversal — tuner IDs are GUIDs but come from config.
-            var safeId = Path.GetFileName(id);
+            var safeId = tunerGuid.ToString("N", CultureInfo.InvariantCulture);
             var channelCacheFile = Path.Combine(_config.CommonApplicationPaths.CachePath, safeId + "_channels");
             try
             {
@@ -119,7 +120,7 @@ public class TunerHostManager : ITunerHostManager
             }
             catch (IOException ex)
             {
-                _logger.LogWarning(ex, "Error deleting channel cache file for tuner {TunerId}", id);
+                _logger.LogWarning(ex, "Error deleting channel cache file for tuner {TunerId}", safeId);
             }
         }
 

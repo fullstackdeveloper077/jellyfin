@@ -337,11 +337,18 @@ public class ListingsManager : IListingsManager
         // Clear in-memory EPG channel cache for this provider
         _epgChannels.TryRemove(providerId, out _);
 
+        // Provider IDs are generated as Guid.NewGuid().ToString("N")
+        // reject anything else so we never use untrusted input in a path or log entry.
+        if (!Guid.TryParseExact(providerId, "N", out var providerGuid))
+        {
+            return;
+        }
+
         // Delete the cached XMLTV file so a fresh copy is downloaded
         var cachePath = _config.CommonApplicationPaths?.CachePath;
         if (!string.IsNullOrEmpty(cachePath))
         {
-            var safeId = Path.GetFileName(providerId);
+            var safeId = providerGuid.ToString("N", CultureInfo.InvariantCulture);
             var xmltvCacheFile = Path.Combine(cachePath, "xmltv", safeId + ".xml");
             try
             {
@@ -349,7 +356,7 @@ public class ListingsManager : IListingsManager
             }
             catch (IOException ex)
             {
-                _logger.LogWarning(ex, "Error deleting XMLTV cache file for provider {ProviderId}", providerId);
+                _logger.LogWarning(ex, "Error deleting XMLTV cache file for provider {ProviderId}", safeId);
             }
         }
     }
