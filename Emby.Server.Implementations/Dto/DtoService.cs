@@ -205,7 +205,7 @@ namespace Emby.Server.Implementations.Dto
 
             // Batch-fetch MusicArtist lookups across all items to avoid N+1 queries.
             IReadOnlyDictionary<string, MusicArtist[]>? artistsBatch = null;
-            HashSet<string>? artistNames = null;
+            var artistNames = new HashSet<string>(StringComparer.Ordinal);
             foreach (var item in accessibleItems)
             {
                 if (item is IHasArtist hasArtist)
@@ -214,7 +214,7 @@ namespace Emby.Server.Implementations.Dto
                     {
                         if (!string.IsNullOrWhiteSpace(name))
                         {
-                            (artistNames ??= new HashSet<string>(StringComparer.Ordinal)).Add(name);
+                            artistNames.Add(name);
                         }
                     }
                 }
@@ -225,13 +225,13 @@ namespace Emby.Server.Implementations.Dto
                     {
                         if (!string.IsNullOrWhiteSpace(name))
                         {
-                            (artistNames ??= new HashSet<string>(StringComparer.Ordinal)).Add(name);
+                            artistNames.Add(name);
                         }
                     }
                 }
             }
 
-            if (artistNames is { Count: > 0 })
+            if (artistNames.Count > 0)
             {
                 artistsBatch = _libraryManager.GetArtists(artistNames.ToArray());
             }

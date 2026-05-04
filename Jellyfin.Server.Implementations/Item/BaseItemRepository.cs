@@ -39,6 +39,7 @@ public sealed partial class BaseItemRepository
     private readonly IItemTypeLookup _itemTypeLookup;
     private readonly IServerConfigurationManager _serverConfigurationManager;
     private readonly ILogger<BaseItemRepository> _logger;
+    private readonly string _musicAlbumTypeName;
 
     private static readonly IReadOnlyList<ItemValueType> _getAllArtistsValueTypes = [ItemValueType.Artist, ItemValueType.AlbumArtist];
     private static readonly IReadOnlyList<ItemValueType> _getArtistValueTypes = [ItemValueType.Artist];
@@ -66,6 +67,7 @@ public sealed partial class BaseItemRepository
         _itemTypeLookup = itemTypeLookup;
         _serverConfigurationManager = serverConfigurationManager;
         _logger = logger;
+        _musicAlbumTypeName = itemTypeLookup.BaseItemKindNames[BaseItemKind.MusicAlbum]!;
     }
 
     /// <summary>

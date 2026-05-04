@@ -145,13 +145,11 @@ public sealed partial class BaseItemRepository
         }
 
         // Albums whose Id is the parent of any track matching the user's filter.
-        var musicAlbumType = _itemTypeLookup.BaseItemKindNames[BaseItemKind.MusicAlbum]!;
-
         var albumIdsWithMatchingTrack = context.AncestorIds
             .Join(baseQuery, ai => ai.ItemId, t => t.Id, (ai, _) => ai.ParentItemId);
 
         var topAlbumsQuery = context.BaseItems.AsNoTracking()
-            .Where(album => album.Type == musicAlbumType)
+            .Where(album => album.Type == _musicAlbumTypeName)
             .Where(album => albumIdsWithMatchingTrack.Contains(album.Id))
             .OrderByDescending(album => album.DateCreated)
             .ThenByDescending(album => album.Id);
