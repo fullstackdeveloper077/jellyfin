@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using BitFaster.Caching.Lru;
@@ -64,13 +65,13 @@ public class DotIgnoreIgnoreRule : IResolverIgnoreRule
             return false;
         }
 
-        var ignoreFilePath = FindIgnoreFileCached(searchDirectory);
-        if (ignoreFilePath is null)
+        var ignoreFile = FindIgnoreFileCached(searchDirectory);
+        if (ignoreFile is null)
         {
             return false;
         }
 
-        var parsedEntry = GetParsedRules(ignoreFilePath);
+        var parsedEntry = GetParsedRules(ignoreFile);
         if (parsedEntry is null)
         {
             // File was deleted after we cached the path - clear the directory cache entry and return false
@@ -143,58 +144,69 @@ public class DotIgnoreIgnoreRule : IResolverIgnoreRule
         return ignore.IsIgnored(pathToCheck);
     }
 
-    private string? FindIgnoreFileCached(string directory)
+    private FileInfo? FindIgnoreFileCached(string directory)
     {
         // Check if we have a cached result for this directory
         if (_directoryCache.TryGet(directory, out var cached))
         {
-            return cached.IgnoreFilePath;
+            return cached.IgnoreFileDirectory is null
+                ? null
+                : new FileInfo(Path.Join(cached.IgnoreFileDirectory, ".ignore"));
         }
 
-        // Walk up the directory tree to find .ignore file
-        var current = directory;
-        var checkedDirs = new System.Collections.Generic.List<string> { directory };
-
-        while (!string.IsNullOrEmpty(current))
+        DirectoryInfo startDir;
+        try
         {
+            startDir = new DirectoryInfo(directory);
+        }
+        catch (ArgumentException)
+        {
+            return null;
+        }
+
+        // Walk up the directory tree to find .ignore file using DirectoryInfo.Parent
+        var checkedDirs = new List<string> { directory };
+
+        for (var current = startDir; current is not null; current = current.Parent)
+        {
+            var currentPath = current.FullName;
+
             // Check if this intermediate directory is cached
-            if (current != directory && _directoryCache.TryGet(current, out var parentCached))
+            if (current != startDir && _directoryCache.TryGet(currentPath, out var parentCached))
             {
                 // Cache the result for all directories we checked
-                var entry = new IgnoreFileCacheEntry(parentCached.IgnoreFilePath);
+                var entry = new IgnoreFileCacheEntry(parentCached.IgnoreFileDirectory);
                 foreach (var dir in checkedDirs)
                 {
                     _directoryCache.AddOrUpdate(dir, entry);
                 }
 
-                return parentCached.IgnoreFilePath;
+                return parentCached.IgnoreFileDirectory is null
+                    ? null
+                    : new FileInfo(Path.Join(parentCached.IgnoreFileDirectory, ".ignore"));
             }
 
-            var ignorePath = Path.Join(current, ".ignore");
-            if (File.Exists(ignorePath))
+            var ignoreFile = new FileInfo(Path.Join(currentPath, ".ignore"));
+            if (ignoreFile.Exists)
             {
                 // Cache for all directories we checked
-                var entry = new IgnoreFileCacheEntry(ignorePath);
+                var entry = new IgnoreFileCacheEntry(currentPath);
                 foreach (var dir in checkedDirs)
                 {
                     _directoryCache.AddOrUpdate(dir, entry);
                 }
 
-                return ignorePath;
+                return ignoreFile;
             }
 
-            var parent = Path.GetDirectoryName(current);
-            if (parent == current || string.IsNullOrEmpty(parent))
+            if (current != startDir)
             {
-                break;
+                checkedDirs.Add(currentPath);
             }
-
-            current = parent;
-            checkedDirs.Add(current);
         }
 
         // No .ignore file found - cache null result for all directories
-        var nullEntry = new IgnoreFileCacheEntry(null);
+        var nullEntry = new IgnoreFileCacheEntry((string?)null);
         foreach (var dir in checkedDirs)
         {
             _directoryCache.AddOrUpdate(dir, nullEntry);
@@ -203,29 +215,20 @@ public class DotIgnoreIgnoreRule : IResolverIgnoreRule
         return null;
     }
 
-    private ParsedIgnoreCacheEntry? GetParsedRules(string ignoreFilePath)
+    private ParsedIgnoreCacheEntry? GetParsedRules(FileInfo ignoreFile)
     {
-        FileInfo fileInfo;
-        try
+        if (!ignoreFile.Exists)
         {
-            fileInfo = new FileInfo(ignoreFilePath);
-            if (!fileInfo.Exists)
-            {
-                _rulesCache.TryRemove(ignoreFilePath, out _);
-                return null;
-            }
-        }
-        catch
-        {
-            _rulesCache.TryRemove(ignoreFilePath, out _);
+            _rulesCache.TryRemove(ignoreFile.FullName, out _);
             return null;
         }
 
-        var lastModified = fileInfo.LastWriteTimeUtc;
-        var fileLength = fileInfo.Length;
+        var lastModified = ignoreFile.LastWriteTimeUtc;
+        var fileLength = ignoreFile.Length;
+        var key = ignoreFile.FullName;
 
         // Check cache
-        if (_rulesCache.TryGet(ignoreFilePath, out var cached))
+        if (_rulesCache.TryGet(key, out var cached))
         {
             if (cached.FileLastModified == lastModified && cached.FileLength == fileLength)
             {
@@ -233,12 +236,12 @@ public class DotIgnoreIgnoreRule : IResolverIgnoreRule
             }
 
             // Stale - need to reparse
-            _rulesCache.TryRemove(ignoreFilePath, out _);
+            _rulesCache.TryRemove(key, out _);
         }
 
         // Parse the file
-        var parsedEntry = ParseIgnoreFile(fileInfo, lastModified, fileLength);
-        _rulesCache.AddOrUpdate(ignoreFilePath, parsedEntry);
+        var parsedEntry = ParseIgnoreFile(ignoreFile, lastModified, fileLength);
+        _rulesCache.AddOrUpdate(key, parsedEntry);
         return parsedEntry;
     }
 
@@ -321,7 +324,7 @@ public class DotIgnoreIgnoreRule : IResolverIgnoreRule
         return pathToCheck;
     }
 
-    private readonly record struct IgnoreFileCacheEntry(string? IgnoreFilePath);
+    private readonly record struct IgnoreFileCacheEntry(string? IgnoreFileDirectory);
 
     private sealed class ParsedIgnoreCacheEntry
     {
