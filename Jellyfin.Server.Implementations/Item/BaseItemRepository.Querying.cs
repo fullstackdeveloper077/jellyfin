@@ -124,15 +124,9 @@ public sealed partial class BaseItemRepository
             return GetLatestTvShowItems(context, baseQuery, filter, limit);
         }
 
-        // Resolve the top N result item ids in a single SQL statement, ordered by the
-        // group's most recent DateCreated. Movies and music differ in what an "item"
-        // is, so the grouping shape is per-branch.
-        List<Guid> firstIds;
         if (collectionType is CollectionType.movies)
         {
-            // Movies group by PresentationUniqueKey. Alternate versions (4K/1080p of the
-            // same movie) share that key, but they're already filtered out upstream by
-            // PrimaryVersionId IS NULL.
+            // Group by PresentationUniqueKey, pick the newest item per group.
             var topGroupItems = baseQuery
                 .Where(e => e.PresentationUniqueKey != null)
                 .GroupBy(e => e.PresentationUniqueKey)
@@ -143,50 +137,49 @@ public sealed partial class BaseItemRepository
                 })
                 .OrderByDescending(g => g.MaxDate);
 
-            var idsQuery = filter.Limit.HasValue
+            var firstIdsQuery = filter.Limit.HasValue
                 ? topGroupItems.Take(filter.Limit.Value).Select(g => g.FirstId)
                 : topGroupItems.Select(g => g.FirstId);
 
-            firstIds = idsQuery.ToList();
-        }
-        else
-        {
-            // Music returns MusicAlbum entities, ordered by their latest track's
-            // DateCreated. Group by the MusicAlbum ancestor of each track via
-            // AncestorIds.
-            var musicAlbumType = _itemTypeLookup.BaseItemKindNames[BaseItemKind.MusicAlbum]!;
-
-            var topGroupItems =
-                from ancestor in context.AncestorIds
-                join track in baseQuery on ancestor.ItemId equals track.Id
-                join album in context.BaseItems on ancestor.ParentItemId equals album.Id
-                where album.Type == musicAlbumType
-                group track.DateCreated by album.Id into g
-                orderby g.Max() descending
-                select new { AlbumId = g.Key, MaxDate = g.Max() };
-
-            var idsQuery = filter.Limit.HasValue
-                ? topGroupItems.Take(filter.Limit.Value).Select(g => g.AlbumId)
-                : topGroupItems.Select(g => g.AlbumId);
-
-            firstIds = idsQuery.ToList();
+            return LoadLatestByIds(context, firstIdsQuery, filter);
         }
 
-        // Load the result items by id. The order from firstIds is the group ordering
-        // we want; we re-apply it via dictionary lookup because for music the loaded
-        // album's own DateCreated may not match the album's latest-track date, so a
-        // SQL ORDER BY DateCreated wouldn't preserve it.
+        // Albums whose Id is the parent of any track matching the user's filter.
+        var musicAlbumType = _itemTypeLookup.BaseItemKindNames[BaseItemKind.MusicAlbum]!;
+
+        var albumIdsWithMatchingTrack = context.AncestorIds
+            .Join(baseQuery, ai => ai.ItemId, t => t.Id, (ai, _) => ai.ParentItemId);
+
+        var topAlbumsQuery = context.BaseItems.AsNoTracking()
+            .Where(album => album.Type == musicAlbumType)
+            .Where(album => albumIdsWithMatchingTrack.Contains(album.Id))
+            .OrderByDescending(album => album.DateCreated)
+            .ThenByDescending(album => album.Id);
+
+        var albumIdsQuery = filter.Limit.HasValue
+            ? topAlbumsQuery.Take(filter.Limit.Value).Select(a => a.Id)
+            : topAlbumsQuery.Select(a => a.Id);
+
+        return LoadLatestByIds(context, albumIdsQuery, filter);
+    }
+
+    // Keeping idsQuery deferred lets EF emit `WHERE Id IN (<subquery>)`.
+    private IReadOnlyList<BaseItemDto> LoadLatestByIds(
+        JellyfinDbContext context,
+        IQueryable<Guid> idsQuery,
+        InternalItemsQuery filter)
+    {
         var itemsQuery = ApplyNavigations(
-            context.BaseItems.AsNoTracking().WhereOneOrMany(firstIds, e => e.Id),
+            context.BaseItems.AsNoTracking().Where(e => idsQuery.Contains(e.Id)),
             filter);
 
-        var itemsById = itemsQuery
+        return itemsQuery
+            .OrderByDescending(e => e.DateCreated)
+            .ThenByDescending(e => e.Id)
             .AsEnumerable()
             .Select(w => DeserializeBaseItem(w, filter.SkipDeserialization))
             .Where(dto => dto != null)
-            .ToDictionary(i => i!.Id);
-
-        return firstIds.Where(itemsById.ContainsKey).Select(id => itemsById[id]).ToArray()!;
+            .ToArray()!;
     }
 
     /// <summary>
