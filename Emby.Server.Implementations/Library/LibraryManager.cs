@@ -86,6 +86,7 @@ namespace Emby.Server.Implementations.Library
         private readonly ExtraResolver _extraResolver;
         private readonly IPathManager _pathManager;
         private readonly FastConcurrentLru<Guid, BaseItem> _cache;
+        private readonly DotIgnoreIgnoreRule _dotIgnoreIgnoreRule;
 
         /// <summary>
         /// The _root folder sync lock.
@@ -127,6 +128,7 @@ namespace Emby.Server.Implementations.Library
         /// <param name="directoryService">The directory service.</param>
         /// <param name="peopleRepository">The people repository.</param>
         /// <param name="pathManager">The path manager.</param>
+        /// <param name="dotIgnoreIgnoreRule">The .ignore rule handler.</param>
         public LibraryManager(
             IServerApplicationHost appHost,
             ILoggerFactory loggerFactory,
@@ -148,7 +150,8 @@ namespace Emby.Server.Implementations.Library
             NamingOptions namingOptions,
             IDirectoryService directoryService,
             IPeopleRepository peopleRepository,
-            IPathManager pathManager)
+            IPathManager pathManager,
+            DotIgnoreIgnoreRule dotIgnoreIgnoreRule)
         {
             _appHost = appHost;
             _logger = loggerFactory.CreateLogger<LibraryManager>();
@@ -173,6 +176,7 @@ namespace Emby.Server.Implementations.Library
             _namingOptions = namingOptions;
             _peopleRepository = peopleRepository;
             _pathManager = pathManager;
+            _dotIgnoreIgnoreRule = dotIgnoreIgnoreRule;
             _extraResolver = new ExtraResolver(loggerFactory.CreateLogger<ExtraResolver>(), namingOptions, directoryService);
 
             _configurationManager.ConfigurationUpdated += ConfigurationUpdated;
@@ -1305,6 +1309,7 @@ namespace Emby.Server.Implementations.Library
         public async Task ValidateMediaLibraryInternal(IProgress<double> progress, CancellationToken cancellationToken)
         {
             IsScanRunning = true;
+            ClearIgnoreRuleCache();
             LibraryMonitor.Stop();
 
             try
@@ -1313,6 +1318,7 @@ namespace Emby.Server.Implementations.Library
             }
             finally
             {
+                ClearIgnoreRuleCache();
                 LibraryMonitor.Start();
                 IsScanRunning = false;
             }
@@ -1320,6 +1326,7 @@ namespace Emby.Server.Implementations.Library
 
         public async Task ValidateTopLibraryFolders(CancellationToken cancellationToken, bool removeRoot = false)
         {
+            ClearIgnoreRuleCache();
             RootFolder.Children = null;
             await RootFolder.RefreshMetadata(cancellationToken).ConfigureAwait(false);
 
@@ -1362,6 +1369,14 @@ namespace Emby.Server.Implementations.Library
             {
                 _persistenceService.DeleteItem(toDelete.ToArray());
             }
+
+            ClearIgnoreRuleCache();
+        }
+
+        /// <inheritdoc />
+        public void ClearIgnoreRuleCache()
+        {
+            _dotIgnoreIgnoreRule.ClearDirectoryCache();
         }
 
         private async Task PerformLibraryValidation(IProgress<double> progress, CancellationToken cancellationToken)
@@ -3182,7 +3197,7 @@ namespace Emby.Server.Implementations.Library
         public IEnumerable<BaseItem> FindExtras(BaseItem owner, IReadOnlyList<FileSystemMetadata> fileSystemChildren, IDirectoryService directoryService)
         {
             // Apply .ignore rules
-            var filtered = fileSystemChildren.Where(c => !DotIgnoreIgnoreRule.IsIgnored(c, owner)).ToList();
+            var filtered = fileSystemChildren.Where(c => !_dotIgnoreIgnoreRule.ShouldIgnore(c, owner)).ToList();
             var isFolder = owner.IsFolder || (owner is Video video && (video.VideoType == VideoType.BluRay || video.VideoType == VideoType.Dvd));
             var ownerVideoInfo = VideoResolver.Resolve(owner.Path, isFolder, _namingOptions, libraryRoot: owner.ContainingFolderPath);
             if (ownerVideoInfo is null)
