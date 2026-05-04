@@ -30,11 +30,13 @@ using MediaBrowser.Controller.Drawing;
 using MediaBrowser.Controller.Dto;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Audio;
+using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.IO;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.LiveTv;
 using MediaBrowser.Controller.MediaEncoding;
 using MediaBrowser.Controller.Persistence;
+using MediaBrowser.Controller.Playlists;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Controller.Resolvers;
 using MediaBrowser.Controller.Sorting;
@@ -1879,6 +1881,25 @@ namespace Emby.Server.Implementations.Library
                 if (query.TopParentIds.Length == 0)
                 {
                     query.TopParentIds = [Guid.NewGuid()];
+                }
+            }
+            else if (parents.Count == 1 && parents.First() is Folder folder
+                && (folder is Playlist || folder is BoxSet)
+                && folder.LinkedChildren.Length > 0)
+            {
+                // Playlists and BoxSets store their contents in LinkedChildren and never
+                // populate AncestorIds for those items, so a recursive AncestorIds query
+                // would return zero rows. Resolve to the linked child IDs up front and
+                // route through the existing indexed ItemIds filter.
+                query.ItemIds = folder.LinkedChildren
+                    .Where(lc => lc.ItemId.HasValue && !lc.ItemId.Value.IsEmpty())
+                    .Select(lc => lc.ItemId!.Value)
+                    .ToArray();
+
+                // Empty linked-children should still return empty rather than scanning everything.
+                if (query.ItemIds.Length == 0)
+                {
+                    query.ItemIds = [Guid.NewGuid()];
                 }
             }
             else
