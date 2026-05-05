@@ -44,7 +44,15 @@ public class PeopleRepository(IDbContextFactory<JellyfinDbContext> dbProvider, I
         }
         else
         {
-            dbQuery = dbQuery.OrderBy(e => e.Name);
+            // The Peoples table has one row per (Name, PersonType), so the same person can
+            // appear multiple times (e.g. as Actor and GuestStar). Collapse to one row per
+            // name so /Persons doesn't return the same BaseItem id repeatedly.
+            var representativeIds = dbQuery
+                .GroupBy(e => e.Name)
+                .Select(g => g.Min(e => e.Id));
+            dbQuery = context.Peoples.AsNoTracking()
+                .Where(p => representativeIds.Contains(p.Id))
+                .OrderBy(e => e.Name);
         }
 
         var count = dbQuery.Count();
