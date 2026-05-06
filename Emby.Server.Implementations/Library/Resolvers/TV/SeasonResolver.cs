@@ -3,6 +3,7 @@
 using System;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using Emby.Naming.Common;
 using Emby.Naming.TV;
 using Emby.Server.Implementations.Library;
@@ -79,6 +80,14 @@ namespace Emby.Server.Implementations.Library.Resolvers.TV
                             episodeInfo.SeasonNumber.Value,
                             episodeInfo.EpisodeNumber.Value);
 
+                        return null;
+                    }
+
+                    var hasAnyVideo = Directory.EnumerateFiles(path, "*", SearchOption.AllDirectories)
+                        .Any(file => _namingOptions.VideoFileExtensions.Contains(Path.GetExtension(file)));
+
+                    if (!hasAnyVideo)
+                    {
                         return null;
                     }
                 }
