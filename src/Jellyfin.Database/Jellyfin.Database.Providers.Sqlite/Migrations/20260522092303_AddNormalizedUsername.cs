@@ -10,21 +10,13 @@ namespace Jellyfin.Server.Implementations.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            // this is the first part of the migration. Add the column.
             migrationBuilder.AddColumn<string>(
                 name: "NormalizedUsername",
                 table: "Users",
                 type: "TEXT",
                 maxLength: 255,
                 nullable: true);
-            migrationBuilder.Sql("""
-                UPDATE "Users" SET "NormalizedUsername" = UPPER("Username")
-            """);
-            migrationBuilder.AlterColumn<string>(
-                name: "NormalizedUsername",
-                table: "Users",
-                type: "TEXT",
-                maxLength: 255,
-                nullable: false);
         }
 
         /// <inheritdoc />
