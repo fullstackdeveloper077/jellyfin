@@ -81,6 +81,88 @@ public class WaitingGroupStateTests
         Assert.InRange(group.LastActivity - before, TimeSpan.Zero, TimeSpan.FromMinutes(1));
     }
 
+    [Fact]
+    public void Ready_PlayingSessionFarBehindGroup_IsCorrectedInsteadOfMarkedReady()
+    {
+        var harness = new GroupHarness();
+        var group = harness.Group;
+
+        // The group seeked half an hour in; the lagging session has not applied the seek yet
+        // but still reports that it is playing.
+        group.PositionTicks = TimeSpan.FromMinutes(30).Ticks;
+        group.LastActivity = DateTime.UtcNow;
+        group.SetBuffering(harness.First, true);
+        group.SetBuffering(harness.Second, true);
+
+        var state = new WaitingGroupState(NullLoggerFactory.Instance) { ResumePlaying = true };
+        harness.Commands.Clear();
+
+        state.HandleRequest(
+            new ReadyGroupRequest(DateTime.UtcNow, 0, true, harness.PlaylistItemId),
+            group,
+            GroupStateType.Waiting,
+            harness.First,
+            CancellationToken.None);
+
+        // The session must be seeked back into position, not accepted as ready and handed a
+        // pause command scheduled half an hour into the future.
+        Assert.Contains(harness.Commands, c => c.Command == SendCommandType.Seek);
+        Assert.DoesNotContain(harness.Commands, c => c.Command == SendCommandType.Pause);
+        Assert.True(group.IsBuffering(), "session should still be considered buffering");
+    }
+
+    [Fact]
+    public void Ready_PlayingSessionSlightlyBehindGroup_IsStillTreatedAsCatchingUp()
+    {
+        var harness = new GroupHarness();
+        var group = harness.Group;
+
+        // A session that is a couple of seconds behind is genuinely recovering, and the group
+        // is expected to wait for it rather than seek it around.
+        group.PositionTicks = TimeSpan.FromMinutes(30).Ticks;
+        group.LastActivity = DateTime.UtcNow;
+        group.SetBuffering(harness.First, true);
+        group.SetBuffering(harness.Second, true);
+
+        var state = new WaitingGroupState(NullLoggerFactory.Instance) { ResumePlaying = true };
+        harness.Commands.Clear();
+
+        var clientPosition = group.PositionTicks - TimeSpan.FromSeconds(2).Ticks;
+        state.HandleRequest(
+            new ReadyGroupRequest(DateTime.UtcNow, clientPosition, true, harness.PlaylistItemId),
+            group,
+            GroupStateType.Waiting,
+            harness.First,
+            CancellationToken.None);
+
+        Assert.DoesNotContain(harness.Commands, c => c.Command == SendCommandType.Seek);
+        Assert.Contains(harness.Commands, c => c.Command == SendCommandType.Pause);
+    }
+
+    [Fact]
+    public void Ready_PausedSessionOutOfPosition_IsStillCorrected()
+    {
+        var harness = new GroupHarness();
+        var group = harness.Group;
+
+        group.PositionTicks = TimeSpan.FromMinutes(30).Ticks;
+        group.LastActivity = DateTime.UtcNow;
+        group.SetBuffering(harness.First, true);
+        group.SetBuffering(harness.Second, true);
+
+        var state = new WaitingGroupState(NullLoggerFactory.Instance) { ResumePlaying = true };
+        harness.Commands.Clear();
+
+        state.HandleRequest(
+            new ReadyGroupRequest(DateTime.UtcNow, 0, false, harness.PlaylistItemId),
+            group,
+            GroupStateType.Waiting,
+            harness.First,
+            CancellationToken.None);
+
+        Assert.Contains(harness.Commands, c => c.Command == SendCommandType.Seek);
+    }
+
     private sealed class GroupHarness
     {
         public GroupHarness()
@@ -99,6 +181,7 @@ public class WaitingGroupStateTests
 
             sessionManager
                 .Setup(m => m.SendSyncPlayCommand(It.IsAny<string>(), It.IsAny<SendCommand>(), It.IsAny<CancellationToken>()))
+                .Callback<string, SendCommand, CancellationToken>((_, command, _) => Commands.Add(command))
                 .Returns(Task.CompletedTask);
 
             sessionManager
@@ -137,5 +220,7 @@ public class WaitingGroupStateTests
         public SessionInfo Second { get; }
 
         public Guid PlaylistItemId { get; }
+
+        public List<SendCommand> Commands { get; } = new List<SendCommand>();
     }
 }
