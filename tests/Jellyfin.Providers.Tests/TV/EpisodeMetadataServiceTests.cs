@@ -104,9 +104,10 @@ public sealed class EpisodeMetadataServiceTests : IDisposable
     }
 
     [Theory]
-    [InlineData(2, 1)] // e.g. an nfo with its episodedetails blocks in descending order
+    [InlineData(2, 1)]
     [InlineData(22, 21)]
-    public void BeforeSave_ReversedEpisodeRange_RestoresOrder(int indexNumber, int indexNumberEnd)
+    [InlineData(21, 2)] // e.g. "Series - S03E21 - E2 (1080p BluRay x265).mkv", where "E2" is the episode title
+    public void BeforeSave_ReversedEpisodeRange_ClearsIndexNumberEnd(int indexNumber, int indexNumberEnd)
     {
         var item = new Episode
         {
@@ -116,9 +117,9 @@ public sealed class EpisodeMetadataServiceTests : IDisposable
 
         var updateType = _service.BeforeSave(item);
 
-        // The range still covers the same episodes, it is just no longer transposed
-        Assert.Equal(indexNumberEnd, item.IndexNumber);
-        Assert.Equal(indexNumber, item.IndexNumberEnd);
+        // The episode number identifies the item, so it is kept and the impossible range is dropped
+        Assert.Equal(indexNumber, item.IndexNumber);
+        Assert.Null(item.IndexNumberEnd);
         Assert.True(updateType.HasFlag(ItemUpdateType.MetadataImport));
     }
 
