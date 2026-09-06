@@ -20,7 +20,6 @@ public class CodeMigrationTests
             .RegisterStartupLogger()
             .AddSingleton<ApplicationSingleton>()
             .AddTransient<MigrationTransient>();
-        services.AddSingleton(services);
 
         await using var serviceProvider = services.BuildServiceProvider();
         var applicationSingleton = serviceProvider.GetRequiredService<ApplicationSingleton>();
@@ -42,6 +41,29 @@ public class CodeMigrationTests
         Assert.True(performed.Transient.IsDisposed);
         // The startup logger has to stay attached to the topic of the running migration.
         Assert.Same(logger.Topic, performed.Logger.Topic);
+    }
+
+    [Fact]
+    public async Task Perform_DoesNotLeakTheMigrationTopic()
+    {
+        var services = new ServiceCollection()
+            .AddLogging()
+            .RegisterStartupLogger()
+            .AddSingleton<ApplicationSingleton>()
+            .AddTransient<MigrationTransient>();
+
+        await using var serviceProvider = services.BuildServiceProvider();
+        var logger = new StartupLogger(NullLogger.Instance).BeginGroup($"Test migration");
+
+        var migration = new CodeMigration(
+            typeof(TestMigration),
+            new JellyfinMigrationAttribute("2026-09-05T10:00:00", nameof(TestMigration)),
+            null);
+        await migration.Perform(serviceProvider, logger, CancellationToken.None);
+
+        // The topic belongs to the migration that ran, so loggers resolved afterwards must not still write into it.
+        Assert.Null(serviceProvider.GetRequiredService<IStartupLogger<CodeMigrationTests>>().Topic);
+        Assert.Null(new StartupLogger(NullLogger.Instance).Topic);
     }
 
     private sealed class ApplicationSingleton : IDisposable
