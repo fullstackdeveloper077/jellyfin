@@ -170,6 +170,14 @@ namespace MediaBrowser.Controller.Providers
             }
         }
 
+        public void Move(string source, string destination)
+        {
+            Directory.Move(source, destination);
+
+            Invalidate(source);
+            Invalidate(destination);
+        }
+
         public bool IsAccessible(string path)
         {
             return _fileSystem.GetFileSystemEntryPaths(path).Any();
@@ -178,21 +186,21 @@ namespace MediaBrowser.Controller.Providers
         private void DropCacheIfIdleOrFull()
         {
             var nowMs = Environment.TickCount64;
-            var idleMs = nowMs - Volatile.Read(ref _lastAccess);
+            var idleMs = nowMs - _lastAccess;
 
-            if (idleMs >= IdleTimeoutMs || Volatile.Read(ref _recordCount) >= MaxCachedRecords)
+            if (idleMs >= IdleTimeoutMs || _recordCount >= MaxCachedRecords)
             {
                 _cache.Clear();
                 _fileCache.Clear();
                 _filePathCache.Clear();
-                Volatile.Write(ref _recordCount, 0);
-                Volatile.Write(ref _lastAccess, nowMs);
+                _recordCount = 0;
+                _lastAccess = nowMs;
                 return;
             }
 
             if (idleMs >= AccessIntervalMs)
             {
-                Volatile.Write(ref _lastAccess, nowMs);
+                _lastAccess = nowMs;
             }
         }
 

@@ -3723,7 +3723,6 @@ namespace Emby.Server.Implementations.Library
                     }
                 }
 
-                // The injected service is a singleton, so its listing predates this folder.
                 _directoryService.Invalidate(virtualFolderPath);
             }
             finally

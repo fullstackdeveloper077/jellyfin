@@ -29,6 +29,13 @@ namespace MediaBrowser.Controller.Providers
         /// <param name="path">The file or directory path that changed.</param>
         void Invalidate(string path);
 
+        /// <summary>
+        /// Moves a directory and forgets what is cached about both paths.
+        /// </summary>
+        /// <param name="source">The directory to move.</param>
+        /// <param name="destination">The path to move the directory to.</param>
+        void Move(string source, string destination);
+
         bool IsAccessible(string path);
     }
 }

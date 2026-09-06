@@ -284,7 +284,6 @@ namespace MediaBrowser.Providers.Subtitles
                             await stream.CopyToAsync(fs).ConfigureAwait(false);
                         }
 
-                        // The injected service is a singleton, so its listing of the folder is now stale.
                         _directoryService.Invalidate(path);
 
                         return;
@@ -401,7 +400,6 @@ namespace MediaBrowser.Providers.Subtitles
                 _monitor.ReportFileSystemChangeComplete(path, false);
             }
 
-            // The injected service is a singleton, so its listing would keep the deleted file.
             _directoryService.Invalidate(path);
 
             return item.RefreshMetadata(CancellationToken.None);

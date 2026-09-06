@@ -183,15 +183,11 @@ public class LibraryStructureController : BaseJellyfinApiController
                 var tempPath = Path.Combine(
                     rootFolderPath,
                     Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture));
-                Directory.Move(currentPath, tempPath);
+                _directoryService.Move(currentPath, tempPath);
                 currentPath = tempPath;
             }
 
-            Directory.Move(currentPath, newPath);
-
-            // The injected service is a singleton, so its listings of both paths are now stale.
-            _directoryService.Invalidate(currentPath);
-            _directoryService.Invalidate(newPath);
+            _directoryService.Move(currentPath, newPath);
         }
         finally
         {

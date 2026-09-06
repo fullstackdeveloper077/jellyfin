@@ -368,8 +368,6 @@ namespace Emby.Server.Implementations.IO
                 return;
             }
 
-            // The injected service is a singleton, so drop the path before the checks below:
-            // a change we deliberately do not refresh for still has to read correctly later.
             _directoryService.Invalidate(path);
 
             // Ignore certain files, If the parent of an ignored path has a change event, ignore that too
