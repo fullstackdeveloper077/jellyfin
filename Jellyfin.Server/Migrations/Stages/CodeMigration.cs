@@ -20,17 +20,11 @@ internal class CodeMigration(Type migrationType, JellyfinMigrationAttribute meta
         return Metadata.Order.ToString("yyyyMMddHHmmsss", CultureInfo.InvariantCulture) + "_" + Metadata.Name!;
     }
 
-    public async Task Perform(IServiceProvider? serviceProvider, IStartupLogger logger, CancellationToken cancellationToken)
+    public async Task Perform(IServiceProvider serviceProvider, IStartupLogger logger, CancellationToken cancellationToken)
     {
         if (!IsMigrationRoutine(MigrationType))
         {
             throw new InvalidOperationException($"The type {MigrationType} does not implement either IMigrationRoutine or IAsyncMigrationRoutine and is not a valid migration type");
-        }
-
-        if (serviceProvider is null)
-        {
-            await RunAsync(Activator.CreateInstance(MigrationType)!, cancellationToken).ConfigureAwait(false);
-            return;
         }
 
         // The routine runs against a scope of the applications own container. Copying the application service

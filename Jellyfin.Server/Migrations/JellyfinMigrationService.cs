@@ -183,7 +183,7 @@ internal class JellyfinMigrationService
         }
     }
 
-    public async Task MigrateStepAsync(JellyfinMigrationStageTypes stage, IServiceProvider? serviceProvider)
+    public async Task MigrateStepAsync(JellyfinMigrationStageTypes stage, IServiceProvider serviceProvider)
     {
         var logger = _startupLogger.With(_loggerFactory.CreateLogger<JellyfinMigrationService>()).BeginGroup($"Migrate stage {stage}.");
         ICollection<CodeMigration> migrationStage = (Migrations.FirstOrDefault(e => e.Stage == stage) as ICollection<CodeMigration>) ?? [];
@@ -445,10 +445,10 @@ internal class JellyfinMigrationService
     private class InternalCodeMigration : IInternalMigration
     {
         private readonly CodeMigration _codeMigration;
-        private readonly IServiceProvider? _serviceProvider;
+        private readonly IServiceProvider _serviceProvider;
         private JellyfinDbContext _dbContext;
 
-        public InternalCodeMigration(CodeMigration codeMigration, IServiceProvider? serviceProvider, JellyfinDbContext dbContext)
+        public InternalCodeMigration(CodeMigration codeMigration, IServiceProvider serviceProvider, JellyfinDbContext dbContext)
         {
             _codeMigration = codeMigration;
             _serviceProvider = serviceProvider;
