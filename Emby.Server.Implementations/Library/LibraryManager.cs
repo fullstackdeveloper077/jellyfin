@@ -3723,6 +3723,8 @@ namespace Emby.Server.Implementations.Library
                     }
                 }
 
+                // The libraries root was listed before this folder existed, so drop that listing:
+                // anything still reading it resolves the library set without the new folder.
                 _directoryService.Invalidate(virtualFolderPath);
             }
             finally
